@@ -1,0 +1,22 @@
+{
+  "ALLOWED_HOSTS": ["*"],
+  "DATABASES": {
+    "default": {
+      "ENGINE": "django.db.backends.postgresql",
+      "NAME": "outletter",
+      "HOST": "db",
+      "PASSWORD": "secret",
+      "PORT": 5432,
+      "USER": "outletter"
+    }
+  },
+  "DEBUG": true,
+  "DOMAIN": "http://localhost:8000",
+  "LOG_DIR": "/code/logs/",
+  "MEDIA_ROOT": "/code/tmp/media/",
+  "MEDIA_URL": "/media/",
+  "SECRET_KEY": "@@7-@&q6c2fy4g47#=fwrv6+)8_agp15nv=r_t^2&%ylf+b_f+",
+  "SERVER_TYPE": "development",
+  "STATIC_ROOT": "/code/tmp/static/",
+  "STATIC_URL": "/static/"
+}

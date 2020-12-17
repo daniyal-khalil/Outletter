@@ -1,0 +1,5 @@
+# Django
+django==3.1.4
+
+# Database
+psycopg2-binary==2.8.6

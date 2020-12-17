@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  db:
+    image: postgres
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    depends_on:
+      - db
+  backend-shell:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    volumes:
+      - ..:/code
