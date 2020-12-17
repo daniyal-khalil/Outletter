@@ -24,6 +24,12 @@ Docker can't help for some devices. If the project does not work with Docker, Do
 ```bash
 $ ENV=DEV ./do.sh start
 ```
+## Run the db initialization for initializing 
+## dummy data as well as a user for localhost:8000/admin
+
+```bash
+$ ENV=DEV ./do.sh initdb
+```
 
 ## Help will show all possible commands
 
