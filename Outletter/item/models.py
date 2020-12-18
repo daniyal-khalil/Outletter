@@ -10,4 +10,4 @@ class Item(models.Model):
         verbose_name = "Item"
 
     def __str__(self):
-        return self.title
+        return self.name
