@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     
 
     # Internal Apps
-    "Outletter",
+    'Outletter',
+    'Outletter.item',
 ]
 
 MIDDLEWARE = [
