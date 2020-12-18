@@ -67,7 +67,7 @@ deploy() {
             echo -e "${BLUE}STAGING DEPLOYMENT${NORMAL}"
             ;;
         *)
-            echo -e "${RED}This command is only available in PRODUCTION and STAGING environments.${NORMAL}"
+            echo -e "${RED}This command is available only in PRODUCTION and STAGING environments.${NORMAL}"
             exit 1
             ;;
     esac
