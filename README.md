@@ -7,11 +7,14 @@ This is a list of mostly used technologies and libraries that are used in Outlet
 
 - [Django](https://www.djangoproject.com/): Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.
 
+- [Tensorflow](https://www.tensorflow.org/): Tensorflow is a ML framework specifically for Neural Network purposes.
+
+- [Scikit](https://scikit-learn.org/stable/): Scikit is an ML library for many tasks including performance metrics.
+
+- [Open-CV](https://opencv.org/): Open-CV is usually used for image processing purposes.
+
 ## DevOps
 - Docker, Docker Compose
-
-## ML
-- Tensorflow
 
 ## Installation
 We use docker to run the project.
@@ -22,9 +25,11 @@ Docker can't help for some devices. If the project does not work with Docker, Do
 
 [Download Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/#step-2-install-docker-toolbox)
 
-If you are on linux you have to install Nvidia Container Toolkit for GPU usage for Tensorflow.
+Install Nvidia Container Toolkit for GPU usage for Tensorflow although you wont be able to use gpu with the ./do.sh script.
 
 [Download Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)
+
+## Without GPU
 
 ## Running django
 
@@ -42,6 +47,21 @@ $ ENV=DEV ./do.sh help
 ```bash
 $ ./do.sh stop
 $ ./do.sh logs
+```
+
+## With GPU (USE WITH CAUTION, REQUIRES MANUAL CODE TRANSFER TO CONTAINER. USE WITHOUT GPU FOR NORMAL USAGE)
+## Running django
+
+```bash
+$ ENV=DEV ./do.sh build
+$ make start
+$ make migrate
+```
+
+## Stopping django
+```bash
+$ make stop
+$ make prune
 ```
 
 Admin user

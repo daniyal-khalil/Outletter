@@ -17,6 +17,3 @@ scipy==1.5.4
 # Image Processing
 opencv-python==4.4.0.46
 numpy==1.19.4
-
-# # Model
-# tensorflow==2.4.0
