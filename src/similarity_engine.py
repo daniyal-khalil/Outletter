@@ -1,6 +1,6 @@
 import numpy as np
 import os
-# import tensorflow as tf
+import tensorflow as tf
 import cv2
 from scipy.sparse import csr_matrix
 from sklearn import preprocessing
@@ -43,5 +43,5 @@ class SimilarityEngine():
     #     return sorted_indices, temp
     
     def check(self):
-        # print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+        print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
         print("check")
