@@ -132,15 +132,15 @@ restart() {
 #     docker_command run --rm backend-shell sh -c ${test_command}
 # }
 
-shell() {
-    if [ -z ${1} ]
-    then
-        service = "backend-shell"
-    else
-        service = ${1}
-    fi
-    docker_command run --rm $service bash
-}
+# shell() {
+#     if [ -z ${1} ]
+#     then
+#         service = "backend-shell"
+#     else
+#         service = ${1}
+#     fi
+#     docker_command run --rm $service bash
+# }
 
 status() {
     docker_command ps

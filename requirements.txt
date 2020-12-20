@@ -7,3 +7,16 @@ psycopg2-binary==2.8.6
 # API
 djangorestframework==3.11.0
 django-cors-headers==3.2.1
+
+# Preprocessing
+scikit-learn==0.23.2
+
+# Sparsity
+scipy==1.5.4
+
+# Image Processing
+opencv-python==4.4.0.46
+numpy==1.19.4
+
+# # Model
+# tensorflow==2.4.0

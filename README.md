@@ -10,6 +10,9 @@ This is a list of mostly used technologies and libraries that are used in Outlet
 ## DevOps
 - Docker, Docker Compose
 
+## ML
+- Tensorflow
+
 ## Installation
 We use docker to run the project.
 
@@ -18,6 +21,10 @@ We use docker to run the project.
 Docker can't help for some devices. If the project does not work with Docker, Docker Toolbox will help you.
 
 [Download Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/#step-2-install-docker-toolbox)
+
+If you are on linux you have to install Nvidia Container Toolkit for GPU usage for Tensorflow.
+
+[Download Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)
 
 ## Running django
 

@@ -1,6 +1,7 @@
 FROM python:3.6
-
+# RUN apt-get install ffmpeg libsm6 libxext6  -y
 RUN apt-get update
+RUN apt-get install libgl1-mesa-glx -y
 ENV PYTHONUNBUFFERED 1
 ENV LANG en_US.UTF-8
 
