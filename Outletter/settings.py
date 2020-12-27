@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # Internal Apps
     'Outletter',
     'Outletter.item',
+    'Outletter.customerimageupload'
 ]
 
 MIDDLEWARE = [
@@ -109,3 +110,9 @@ USE_TZ = True
 
 # Similarity and Segmentation Dirs
 MODEL_DIR = os.path.join(BASE_DIR, "resources")
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_media')
+MEDIA_URL = '/media/'
+
+from tensorflow.keras.models import load_model
+SEGEMENTATION_MODEL = load_model(os.path.join(MODEL_DIR, 'segmentation_model_demo1.h5'))
+SIMILARITY_MODEL = load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))

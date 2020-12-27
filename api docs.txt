@@ -1,0 +1,18 @@
+POST /api/v1/similarItems
+
+Request Parameters:
+image: image in Post data
+gender: 'm'/'f'
+debug: 'true'/'false'
+shop: 0/1/2/3/4/5/6/7.... mapping to shop names
+
+Response if debug == true
+links: array of result links (sorted)
+imageLinks: array of image links (sorted)
+tags: array of string tags for query image
+text: string text  for query image
+segmented_image: base64 encoded segmented image 
+
+Response if debug == false
+links: array of result links (sorted)
+imageLinks: array of image links (sorted)

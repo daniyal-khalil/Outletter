@@ -143,3 +143,8 @@ cython_debug/
 .log
 
 logs.*
+
+.h5
+.png
+.jpg
+.jpeg
