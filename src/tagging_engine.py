@@ -14,7 +14,6 @@ websites = ["www.koton.com", "www.lcwaikiki.com", "www.boyner.com.tr", "www.defa
 
 class TaggingEngine():
 	def __init__(self, file):
-		os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/code/resources/keyFile.json'
 		self.file = file
 		self.content = None
 		with io.open(self.file, 'rb') as image_file:

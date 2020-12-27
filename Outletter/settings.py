@@ -109,7 +109,9 @@ USE_L10N = True
 USE_TZ = True
 
 # Similarity and Segmentation Dirs
-MODEL_DIR = os.path.join(BASE_DIR, "resources")
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(BASE_DIR, "conf", "keyFile.json")
+
+MODEL_DIR = os.path.join(BASE_DIR, 'resources')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_media')
 MEDIA_URL = '/media/'
 
