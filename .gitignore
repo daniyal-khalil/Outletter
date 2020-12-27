@@ -144,7 +144,18 @@ cython_debug/
 
 logs.*
 
+resources/*.h5
 .h5
 .png
 .jpg
 .jpeg
+
+uploaded_media/*.png
+uploaded_media/*.jpg
+uploaded_media/*.JPG
+uploaded_media/*.jpeg
+
+uploaded_media/customer_id_result/*.png
+uploaded_media/customer_id_result/*.jpg
+uploaded_media/customer_id_result/*.JPG
+uploaded_media/customer_id_result/*.jpeg
