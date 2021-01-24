@@ -1,6 +1,7 @@
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.core.management import BaseCommand
+
+from Outletter.user.models import User
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -10,8 +11,9 @@ class Command(BaseCommand):
             )
             return
         
-        user = User.objects.filter(username="toni").first()
+        user = User.objects.filter(user_name="toni").first()
         if not user:
-            User.objects.create_superuser("toni", "toni@bilkent.com", "secret")
+            User.objects.create_superuser(email="toni@bilkent.com", user_name="toni",
+                                 first_name="tony", last_name="guy", password="secret")
         # Write code for initialization here After we make our DB design that is.
 

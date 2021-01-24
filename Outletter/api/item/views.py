@@ -1,16 +1,19 @@
-from rest_framework import views, response, status
-import os
-from django.http import JsonResponse
-from django.conf import settings
-import cv2
-from Outletter.api.item.serializers import ItemSerializer, CustomerImageUploadSerializer
-from Outletter.item.models import Item
+from io import BytesIO
 from PIL import Image
 import requests
 import base64
-from io import BytesIO
+import cv2
+import os
 
+from rest_framework import views, response, status
+
+from django.http import JsonResponse
+from django.conf import settings
+
+from Outletter.api.item.serializers import ItemSerializer, CustomerImageUploadSerializer
+from Outletter.item.models import Item
 from Outletter.customerimageupload.models import CustomerImageUpload
+
 from src.similarity_engine import SimilarityEngine
 from src.segmentation_engine import SegmentationEngine
 from src.tagging_engine import TaggingEngine

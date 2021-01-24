@@ -34,7 +34,12 @@ class TaggingEngine():
 		# print(filtered)
 		# print(texts)
 		# print(color)
-		results = self.scrapeResults( "site:" + websites[url_index] + " " + label + " " + gender + " " + ' '.join(dominant_colors) + " " + ' '.join(texts), 'https://' + websites[url_index])
+		if label is 'Tshirts':
+			label = 'T Shirts or tshirts or t-shirts or t shirts or T-shirts'
+		searchQuery = "site:" + websites[url_index] + " (" + label + ") and (" + gender + ") and (" + ' and '.join(dominant_colors) + ") and (" + ' '.join(texts) + ')'
+		print(searchQuery)
+		results = self.scrapeResults( searchQuery, 'https://' + websites[url_index])
+		
 		if debug:
 			return {
 				"links": results.get("links", []),

@@ -26,6 +26,8 @@ for key, value in env.items():
     globals()[key] = value
 
 
+AUTH_USER_MODEL = 'user.User'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
 
     # Internal Apps
     'Outletter',
+    'Outletter.user',
     'Outletter.item',
     'Outletter.customerimageupload'
 ]

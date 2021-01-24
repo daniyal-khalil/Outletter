@@ -159,3 +159,8 @@ uploaded_media/customer_id_result/*.png
 uploaded_media/customer_id_result/*.jpg
 uploaded_media/customer_id_result/*.JPG
 uploaded_media/customer_id_result/*.jpeg
+
+uploaded_media/profile_pictures/*.png
+uploaded_media/profile_pictures/*.jpg
+uploaded_media/profile_pictures/*.JPG
+uploaded_media/profile_pictures/*.jpeg
