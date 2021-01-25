@@ -11,7 +11,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ("user_name", "email", "password", "confirm_password", "first_name", "last_name", "about", "profile_image")
+        fields = ("user_name", "email", "password", "confirm_password", "first_name", "last_name", "gender", "about", "profile_image")
     
     def validate(self, attrs):
         # This is validator for full attrs. Individual validators can also be made.
@@ -26,7 +26,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             about=validated_data['about'],
-            profile_image=validated_data['profile_image']
+            profile_image=validated_data['profile_image'],
+            gender=validated_data['gender']
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -46,4 +47,4 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("user_name", "email", "first_name", "last_name", "about", "profile_image")
+        fields = ("user_name", "email", "first_name", "last_name", "gender", "about", "profile_image")

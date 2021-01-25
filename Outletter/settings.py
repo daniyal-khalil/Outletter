@@ -118,6 +118,6 @@ MODEL_DIR = os.path.join(BASE_DIR, 'resources')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_media')
 MEDIA_URL = '/media/'
 
-from tensorflow.keras.models import load_model
-SEGEMENTATION_MODEL = load_model(os.path.join(MODEL_DIR, 'segmentation_model_demo1.h5'))
-SIMILARITY_MODEL = load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
+# from tensorflow.keras.models import load_model
+# SEGEMENTATION_MODEL = load_model(os.path.join(MODEL_DIR, 'segmentation_model_demo1.h5'))
+# SIMILARITY_MODEL = load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))

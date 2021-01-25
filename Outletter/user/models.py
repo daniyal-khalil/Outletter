@@ -6,11 +6,16 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from Outletter.user.managers import UserManager
 
 class User(AbstractBaseUser, PermissionsMixin):
+    class GenderChoices(models.TextChoices):
+        MALE = "male", _("Male")
+        FEMALE = "female", _("Female")
+    
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
     email = models.EmailField(_('email address'), unique=True)
     user_name = models.CharField(max_length=128, unique=True)
     about = models.TextField(_('about'), max_length=500, blank=True)
+    gender = models.CharField(choices=GenderChoices.choices, max_length=6, null=True, blank=True,)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
