@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'Outletter',
     'Outletter.user',
     'Outletter.item',
-    'Outletter.customerimageupload'
 ]
 
 MIDDLEWARE = [
