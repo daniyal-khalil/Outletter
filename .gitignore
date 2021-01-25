@@ -164,3 +164,8 @@ uploaded_media/profile_pictures/*.png
 uploaded_media/profile_pictures/*.jpg
 uploaded_media/profile_pictures/*.JPG
 uploaded_media/profile_pictures/*.jpeg
+
+uploaded_media/item_pictures/*.png
+uploaded_media/item_pictures/*.jpg
+uploaded_media/item_pictures/*.JPG
+uploaded_media/item_pictures/*.jpeg

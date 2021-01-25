@@ -9,8 +9,8 @@ from rest_framework import views, response, status
 
 from django.conf import settings
 
-from Outletter.api.item.serializers import ItemSerializer
-from Outletter.item.models import Item
+from Outletter.api.item.serializers import QueryItemSerializer, QueryItemCreateSerializer
+from Outletter.item.models import ScrapedItem, QueryItem
 
 from src.similarity_engine import SimilarityEngine
 from src.segmentation_engine import SegmentationEngine
@@ -19,40 +19,36 @@ from src.tagging_engine import TaggingEngine
 IMG_SIZE = (224,224)
 
 class ItemListView(views.APIView):
-	serializer_class = ItemSerializer
-
-	def get(self, request, format=None):
-		items = Item.objects.all()
-		serialized_items = ItemSerializer(items, many=True).data
-		return response.Response(serialized_items)
+	serializer_class = QueryItemCreateSerializer
+	query_set = QueryItem.objects.all()
 
 	def post(self, request, format=None):
-		data = {
-			'name': 'Vitor',
-			'location': 'Finland',
-			'is_active': True,
-			'count': 28
-		}
-		return JsonResponse(data)
+		item_serializer = self.serializer_class(data=request.data)
+		if item_serializer.is_valid():
+			item_serializer.save()
+			res = QueryItemSerializer(self.query_set.all(), many=True).data
+			return response.Response(res, status=status.HTTP_200_OK)
+		else:
+			return response.Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def readImages(folder):
-	images = []
-	for filename in os.listdir(folder):
-		img = cv2.imread(os.path.join(folder,filename))
-		output = cv2.resize(img, IMG_SIZE)
-		images.append(output)
-	return images
+# def readImages(folder):
+# 	images = []
+# 	for filename in os.listdir(folder):
+# 		img = cv2.imread(os.path.join(folder,filename))
+# 		output = cv2.resize(img, IMG_SIZE)
+# 		images.append(output)
+# 	return images
 	
-def downloadImages(folder, links):
-	if os.path.exists(folder):
-		os.system("rm -r " + folder)
-	os.mkdir(folder)
-	idx = 0
-	for link in links:
-		idx += 1
-		response = requests.get(link)
-		img = Image.open(BytesIO(response.content))
-		img.save(os.path.join(folder, str(idx) + '.' + link.split('.')[-1]))
+# def downloadImages(folder, links):
+# 	if os.path.exists(folder):
+# 		os.system("rm -r " + folder)
+# 	os.mkdir(folder)
+# 	idx = 0
+# 	for link in links:
+# 		idx += 1
+# 		response = requests.get(link)
+# 		img = Image.open(BytesIO(response.content))
+# 		img.save(os.path.join(folder, str(idx) + '.' + link.split('.')[-1]))
 
 # class CustomerImageUploadView(views.APIView):
 # 	serializer_class = CustomerImageUploadSerializer
