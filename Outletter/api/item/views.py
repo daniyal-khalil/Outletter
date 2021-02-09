@@ -54,8 +54,9 @@ class ItemListView(views.APIView):
 		query_label = similarityEngine.decode_query_label(query_label_code)
 		
 		# # Do tagging on the segmented query image
-		scraped_urls, scraped_image_links, tagged_texts, tagged_colors, tagged_labels = tagger.tagImage(resized_segmented_queryImage, item_serializer.data['shop'], 
-						item_serializer.data['gender'], query_label)
+		scraped_urls, scraped_image_links, tagged_texts, tagged_colors, tagged_labels = tagger.tagImage(
+			resized_segmented_queryImage, item_serializer.data['shop'], item_serializer.data['gender'], query_label)
+				
 		
 		return 'query_label'
 
