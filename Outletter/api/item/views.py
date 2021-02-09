@@ -26,10 +26,38 @@ class ItemListView(views.APIView):
 		item_serializer = self.serializer_class(data=request.data)
 		if item_serializer.is_valid():
 			item_serializer.save()
-			res = QueryItemSerializer(self.query_set.all(), many=True).data
+			res = self.run_engines(item_serializer)
 			return response.Response(res, status=status.HTTP_200_OK)
 		else:
 			return response.Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def run_engines(self, item_serializer):
+		# Initialize the 3 engines required for processing
+		segmenter  = SegmentationEngine(settings.SEGEMENTATION_MODEL)
+		similarityEngine = SimilarityEngine(settings.SIMILARITY_MODEL)
+		tagger = TaggingEngine()
+
+		# Load the Query Image
+		queryImage = cv2.imread(item_serializer.data['picture'][1:])
+		
+		# Segment the query Image
+		segmented_queryImage = segmenter.get_dress(queryImage, IMG_SIZE[0], IMG_SIZE[1])
+		
+		# Save the segmented query image
+		cv2.imwrite(item_serializer.data['picture'][1:], segmented_queryImage)
+
+		# Resize the segmented query image
+		resized_segmented_queryImage = cv2.resize(segmented_queryImage, IMG_SIZE)
+
+		# Predict the label code and features for query Image
+		query_img_type_features, query_label_code = similarityEngine.predict_image(resized_segmented_queryImage)
+		query_label = similarityEngine.decode_query_label(query_label_code)
+		
+		# # Do tagging on the segmented query image
+		scraped_urls, scraped_image_links, tagged_texts, tagged_colors, tagged_labels = tagger.tagImage(resized_segmented_queryImage, item_serializer.data['shop'], 
+						item_serializer.data['gender'], query_label)
+		
+		return 'query_label'
 
 # def readImages(folder):
 # 	images = []

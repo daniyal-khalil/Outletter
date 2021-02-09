@@ -15,14 +15,12 @@ class QueryItemCreateSerializer(serializers.ModelSerializer):
         fields = ('picture', 'gender', 'shop', 'debug')
 
     def create(self, validated_data):
-        print(validated_data)
         return QueryItem.objects.create(
             for_gender=validated_data['for_gender'],
             picture=validated_data['picture'],
             shop=validated_data['shop'],
             debug=validated_data['debug'],
         )
-
 
 class QueryItemSerializer(serializers.ModelSerializer):
     class Meta:

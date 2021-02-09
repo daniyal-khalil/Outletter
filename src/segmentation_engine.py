@@ -3,12 +3,12 @@ import numpy as np
 import tensorflow as tf
 import sys
 import os
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
+# from tensorflow.compat.v1 import ConfigProto
+# from tensorflow.compat.v1 import InteractiveSession
 from django.conf import settings
-config = ConfigProto()
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+# config = ConfigProto()
+# config.gpu_options.allow_growth = True
+# session = InteractiveSession(config=config)
 
 
 class SegmentationEngine(object):
@@ -16,14 +16,12 @@ class SegmentationEngine(object):
         self.model   = model
         self.version = version
         
-    def get_dress(self, imageid, stack=False):
+    def get_dress(self, img, h, w, stack=False):
         """limited to top wear and full body dresses (wild and studio working)"""
         """takes input rgb----> return PNG"""
-        name =  imageid
-        file = cv2.imread(name)
-        file = tf.image.resize_with_pad(file,target_height=224,target_width=224)
-        rgb  = file.numpy()
-        file = np.expand_dims(file,axis=0)/ 255.
+        img = tf.image.resize_with_pad(img,target_height=h,target_width=w)
+        rgb  = img.numpy()
+        file = np.expand_dims(img,axis=0)/ 255.
         seq = self.model.predict(file)
         seq = seq[3][0,:,:,0]
         seq = np.expand_dims(seq,axis=-1)
@@ -38,8 +36,6 @@ class SegmentationEngine(object):
             return stacked
         else:
             return rgbs
-        
-        
 
 
 

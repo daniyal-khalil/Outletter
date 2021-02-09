@@ -114,9 +114,10 @@ USE_TZ = True
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(BASE_DIR, "conf", "keyFile.json")
 
 MODEL_DIR = os.path.join(BASE_DIR, 'resources')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploaded_media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-# from tensorflow.keras.models import load_model
-# SEGEMENTATION_MODEL = load_model(os.path.join(MODEL_DIR, 'segmentation_model_demo1.h5'))
-# SIMILARITY_MODEL = load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
+import tensorflow as tf
+SEGEMENTATION_MODEL = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'segmentation_model_demo1.h5'))
+model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
+SIMILARITY_MODEL = tf.keras.Model(inputs=model.layers[0].input,outputs=[model.layers[-2].output, model.layers[-1].output])

@@ -12,24 +12,33 @@ class SimilarityEngine():
 		self.model = model
 		self.labels = ["Bra", "Briefs", "Capris", "Casual Shoes", "Dresses", "Flats", "Flip Flops", "Formal Shoes", "Heels", "Innerwear Vests", "Jackets", "Jeans", "Kurtas", "Kurtis", "Leggings", "Night suits", "Nightdress", "Sandals", "Sarees", "Shirts", "Shorts", "Skirts", "Sports Shoes", "Sweaters", "Sweatshirts", "Tops", "Track Pants", "Trousers", "Trunk", "Tshirts", "Tunics"]
 		
-	def predict(self, image):
-		label = self.model(tf.convert_to_tensor(image[None, :]), training=False)
-		itemLoc = np.argmax(label)
-		return self.labels[itemLoc]
+	def predict_image(self, img):
+		# label = self.model(tf.convert_to_tensor(image[None, :]), training=False)
+		# itemLoc = np.argmax(label)
+		# return self.labels[itemLoc]
+		print(img.shape)
+		print(img[None, :].shape)
+		# tf.convert_to_tensor()
+		# query_img_type_features,  query_img_type_labels = self.model(img[None, :], training=False)
+		# itemLoc = np.argmax(query_img_type_labels)
+		# return query_img_type_features, itemLoc
+		return 'ede', 'ded'
 		
-	
-	def sortSimilarity(self, query, images):
-		model = tf.keras.Model(inputs=self.model.layers[0].input,outputs=[self.model.layers[-2].output, self.model.layers[-1].output])
-		query_img_type_features,  query_img_type_labels = model(tf.convert_to_tensor(query[None, :]), training=False)
-		given_img_type_features,  given_img_type_labels = model(tf.convert_to_tensor(images), training=False)
+	def decode_query_label(self, itemLoc):
+		return self.labels[itemLoc]
+
+	def sortSimilarity(self, query_img_type_features,  itemLoc, images):
+		# model = tf.keras.Model(inputs=self.model.layers[0].input,outputs=[self.model.layers[-2].output, self.model.layers[-1].output])
+		# query_img_type_features,  query_img_type_labels = model(tf.convert_to_tensor(query[None, :]), training=False)
+		given_img_type_features,  given_img_type_labels = self.model(tf.convert_to_tensor(images), training=False)
 		
 		# Converting the image features and labels to numpy and standardizing them
 		query_img_type_features = query_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(query_img_type_features.numpy())
-		query_img_type_labels = query_img_type_labels.numpy()
+		# query_img_type_labels = query_img_type_labels.numpy()
 		given_img_type_features = given_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(given_img_type_features.numpy())
 		given_img_type_labels = np.argmax(given_img_type_labels.numpy(), axis=1)
 		
-		itemLoc = np.argmax(query_img_type_labels)
+		# itemLoc = np.argmax(query_img_type_labels)
 		given_img_type_locs_top = np.where(given_img_type_labels == itemLoc)[0]
 		given_img_type_features_top = given_img_type_features[given_img_type_labels == itemLoc]
 		given_img_type_labels_top = given_img_type_labels[given_img_type_labels == itemLoc]

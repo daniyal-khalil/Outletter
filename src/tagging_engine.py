@@ -13,13 +13,13 @@ websites = ["www.koton.com", "www.lcwaikiki.com", "www.boyner.com.tr", "www.defa
 
 
 class TaggingEngine():
-	def __init__(self, file):
-		self.file = file
+	def __init__(self):
 		self.content = None
-		with io.open(self.file, 'rb') as image_file:
-			self.content = image_file.read()
+		# with io.open(self.file, 'rb') as image_file:
+		# 	self.content = image_file.read()
 
-	def tagImage( self, url_index, gender, label, debug=False):
+	def tagImage( self, content, shop, gender, label):
+		self.content = content
 		tags = self.detect_labels()
 		# color = ""
 		# for x in tags:
@@ -36,22 +36,11 @@ class TaggingEngine():
 		# print(color)
 		if label is 'Tshirts':
 			label = 'T Shirts or tshirts or t-shirts or t shirts or T-shirts'
-		searchQuery = "site:" + websites[url_index] + " (" + label + ") and (" + gender + ") and (" + ' and '.join(dominant_colors) + ") and (" + ' '.join(texts) + ')'
+		searchQuery = "site:" + shop + " (" + label + ") and (" + gender + ") and (" + ' and '.join(dominant_colors) + ") and (" + ' '.join(texts) + ')'
 		print(searchQuery)
-		results = self.scrapeResults( searchQuery, 'https://' + websites[url_index])
+		links, imageLinks = self.scrapeResults( searchQuery, 'https://' + shop)
 		
-		if debug:
-			return {
-				"links": results.get("links", []),
-				"imageLinks": results.get("imageLinks", []),
-				"texts": texts,
-				"colors": dominant_colors,
-				"tags": label
-			}
-		else:
-			return {
-				"links": results
-			}
+		return links, imageLinks, texts, colors, tags
 
 
 	def detect_labels(self):
@@ -174,4 +163,4 @@ class TaggingEngine():
 							break		
 					except Exception:
 						a = 1
-		return { "links": links, "imageLinks": images}
+		return links, images
