@@ -7,11 +7,16 @@ from sklearn import preprocessing
 from sklearn.neighbors import NearestNeighbors
 from tensorflow.keras.models import load_model
 
+from src.choices import LabelChoices as lc
+
 class SimilarityEngine():
 	def __init__(self, model):
 		self.model = model
-		self.labels = ["Bra", "Briefs", "Capris", "Casual Shoes", "Dresses", "Flats", "Flip Flops", "Formal Shoes", "Heels", "Innerwear Vests", "Jackets", "Jeans", "Kurtas", "Kurtis", "Leggings", "Night suits", "Nightdress", "Sandals", "Sarees", "Shirts", "Shorts", "Skirts", "Sports Shoes", "Sweaters", "Sweatshirts", "Tops", "Track Pants", "Trousers", "Trunk", "Tshirts", "Tunics"]
-		
+		# ["Bra", "Briefs", "Capris", "Casual Shoes", "Dresses", "Flats", "Flip Flops", "Formal Shoes", "Heels", "Innerwear Vests", "Jackets", "Jeans", "Kurtas", "Kurtis", "Leggings", "Night suits", "Nightdress", "Sandals", "Sarees", "Shirts", "Shorts", "Skirts", "Sports Shoes", "Sweaters", "Sweatshirts", "Tops", "Track Pants", "Trousers", "Trunk", "Tshirts", "Tunics"]
+		self.labels = [lc.BRA, lc.BRIEFS, lc.CAPRIS, lc.CASUALSHOES, lc.DRESSES, lc.FLATS, lc.FLIPFLOPS, lc.FORMALSHOES, lc.HEELS,
+		 lc.INNERVESTS, lc.JACKETS, lc.JEANS, lc.KURTAS, lc.KURTIS, lc.LEGGINGS, lc.NIGHTSUITS, lc.NIGHTDRESS, lc.SANDALS,
+		 lc.SAREES, lc.SHIRTS, lc.SHORTS, lc.SKIRTS, lc.SPORTSSHOES, lc.SWEATERS, lc.SWEATSHIRTS, lc.TOPS, lc.TRACKPANTS,
+		 lc.TROUSERS, lc.TRUNK, lc.TSHIRTS, lc.TUNICS, lc.NONE]
 	def predict_image(self, img):
 		# label = self.model(tf.convert_to_tensor(image[None, :]), training=False)
 		# itemLoc = np.argmax(label)
