@@ -1,7 +1,7 @@
 start:
 	docker network create commnet
 	docker run --net commnet --name db -e POSTGRES_USER=outletter -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=outletter -d postgres
-	docker run --net commnet --gpus all --name outletter_backend_22 -p 8000:8000 outletter_backend python manage.py runserver 0:8000
+	docker run --net commnet --gpus all --name outletter_backend_22 -p 8001:8000 outletter_backend python manage.py runserver 0:8000
 	docker exec outletter_backend_22 python manage.py migrate
 
 stop:
@@ -15,5 +15,5 @@ migrate:
 
 prune:
 	docker container prune
-	docker image prune 
+	# docker image prune 
 	docker network prune 

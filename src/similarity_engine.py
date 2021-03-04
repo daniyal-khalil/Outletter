@@ -17,33 +17,26 @@ class SimilarityEngine():
 		 lc.INNERVESTS, lc.JACKETS, lc.JEANS, lc.KURTAS, lc.KURTIS, lc.LEGGINGS, lc.NIGHTSUITS, lc.NIGHTDRESS, lc.SANDALS,
 		 lc.SAREES, lc.SHIRTS, lc.SHORTS, lc.SKIRTS, lc.SPORTSSHOES, lc.SWEATERS, lc.SWEATSHIRTS, lc.TOPS, lc.TRACKPANTS,
 		 lc.TROUSERS, lc.TRUNK, lc.TSHIRTS, lc.TUNICS, lc.NONE]
-	def predict_image(self, img):
-		# label = self.model(tf.convert_to_tensor(image[None, :]), training=False)
-		# itemLoc = np.argmax(label)
-		# return self.labels[itemLoc]
-		print(img.shape)
-		print(img[None, :].shape)
-		# tf.convert_to_tensor()
-		# query_img_type_features,  query_img_type_labels = self.model(img[None, :], training=False)
-		# itemLoc = np.argmax(query_img_type_labels)
-		# return query_img_type_features, itemLoc
-		return 'ede', 'ded'
+	
+	def predict_image(self, images):
+		images = np.array(images)
+		if images.ndim == 3:
+			query_img_type_features,  query_img_type_labels = self.model(images[None, :], training=False)
+			itemLoc = np.argmax(query_img_type_labels)
+			return query_img_type_features, itemLoc
+		elif images.ndim == 4:
+			return self.model(images, training=False)
 		
 	def decode_query_label(self, itemLoc):
 		return self.labels[itemLoc]
 
-	def sortSimilarity(self, query_img_type_features,  itemLoc, images):
-		# model = tf.keras.Model(inputs=self.model.layers[0].input,outputs=[self.model.layers[-2].output, self.model.layers[-1].output])
-		# query_img_type_features,  query_img_type_labels = model(tf.convert_to_tensor(query[None, :]), training=False)
-		given_img_type_features,  given_img_type_labels = self.model(tf.convert_to_tensor(images), training=False)
-		
+	def sortSimilarity(self, query_img_type_features,  itemLoc, given_img_type_features, given_img_type_labels):
 		# Converting the image features and labels to numpy and standardizing them
 		query_img_type_features = query_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(query_img_type_features.numpy())
-		# query_img_type_labels = query_img_type_labels.numpy()
+
 		given_img_type_features = given_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(given_img_type_features.numpy())
 		given_img_type_labels = np.argmax(given_img_type_labels.numpy(), axis=1)
 		
-		# itemLoc = np.argmax(query_img_type_labels)
 		given_img_type_locs_top = np.where(given_img_type_labels == itemLoc)[0]
 		given_img_type_features_top = given_img_type_features[given_img_type_labels == itemLoc]
 		given_img_type_labels_top = given_img_type_labels[given_img_type_labels == itemLoc]
@@ -66,4 +59,4 @@ class SimilarityEngine():
 			sorted_indices += given_img_type_locs[ind[0]].tolist()
 			sorted_labels += [self.labels[t] for t in given_img_type_labels[ind[0]]]
 		
-		return sorted_indices, sorted_labels, self.labels[itemLoc]
+		return sorted_indices, sorted_labels
