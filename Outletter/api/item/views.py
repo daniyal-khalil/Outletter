@@ -75,7 +75,7 @@ class ItemListView(views.APIView):
 		queryImage = cv2.imread(query_item.picture.url[1:])
 		
 		# Segment the query Image
-		segmented_queryImage, png_for_gcloud = segmenter.get_dress(queryImage, IMG_SIZE[0], IMG_SIZE[1])
+		segmented_queryImage, png_for_gcloud = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
 		
 		# Save the segmented query image
 		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
@@ -90,17 +90,6 @@ class ItemListView(views.APIView):
 		scraped_urls, scraped_image_links, scraped_names, scraped_prices, scraped_genders, scraped_shops, tagged_texts, tagged_color = tagger.tagImage(
 			png_for_cloud_name, query_item.shop, query_item.for_gender, query_label)
 		
-		# Static values for testing. Will be removed when the above things work
-		# scraped_image_links = ['https://freepngimg.com/thumb/categories/1508.png', 'https://statics.boyner.com.tr/mnresize/325/451/productimages/5002527978_X_01.jpg']
-		# scraped_urls = ['https://www.boyner.com.tr/sevgililer-gunu-hediyeleri-500tl-alti-c-3548664/34', 'https://www.boyner.com.tr/sevgililer-gunu-hediyeleri-500tl-alti-c-3548664/34']
-		# scraped_names = ['test1', 'test2']
-		# scraped_prices = ['0.33', '0.12']
-		# scraped_gender = [GenderChoices.MALE, GenderChoices.MALE]
-		# scraped_shop = [ShopChoices.KOTON, ShopChoices.KOTON]
-		# tagged_texts = ['ez text', 'ede']
-		# tagged_color = 'blue'
-		# tagged_label = LabelChoices.JEANS
-		
 		# Update the label, text and color for the query items
 		data = {'texts': tagged_texts, 'color': tagged_color, 'label': query_label}
 		query_item_update_serializer = QueryItemUpdateSerializer(query_item, data=data)
@@ -114,23 +103,18 @@ class ItemListView(views.APIView):
 		# Read all scraped images
 		scraped_images = [cv2.resize(cv2.imread(item.picture.url[1:]), IMG_SIZE) for item in scraped_items]
 
-		# # Segment all the scraped_images
-		# segmented_scraped_images = segmenter.segment(scraped_images)
+		# Segment all the scraped_images
+		segmented_scraped_images = [segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0] for img in scraped_images]
 
 		# # Save and resize all scraped segmented images
 		# resized_segmented_scraped_images = []
 		# for i in range(len(segmented_scraped_images)):
 		# 	cv2.imwrite(scraped_items[i].picture.url[1:], segmented_scraped_images[i])
-		# 	resized_segmented_scraped_images.append(cv2.resize(segmented_scraped_images[i]))
 
 		# Sort all segmented scraped images by similarity to the query image
-		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(scraped_images)
+		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
 		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, query_label_code, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_items[ind] for ind in sortedIndices]
-
-		# # Static data again for just working it
-		# resultLabels = LabelChoices.JEANS
-		# sorted_scraped_items = scraped_items
 
 		# Update the label for the scraped items
 		for i in range(len(scraped_images)):

@@ -5,9 +5,9 @@ import io, os, random
 import webcolors
 from scipy.spatial import KDTree
 
-allowedTags = ["T-shirt", "Sweatshirt", "Jeans", "Sweater", "Jacket", "Coat", "Pants", "Trousers", "Shorts", "Shirt", "Blazer", "Vest", "Hoodie", "Skirt", "Blouse", "Sundress"]
-colors = ["Blue", "Black", "Red", "White", "Grey", "Brown", "Yellow", "Orange", "Azure", "Purple", "Pink", "Green", "Violet"]
-websites = ["www.koton.com", "www.lcwaikiki.com", "www.boyner.com.tr", "www.defacto.com.tr", "www.trendyol.com", "www2.hm.com/tr_tr"]
+# allowedTags = ["T-shirt", "Sweatshirt", "Jeans", "Sweater", "Jacket", "Coat", "Pants", "Trousers", "Shorts", "Shirt", "Blazer", "Vest", "Hoodie", "Skirt", "Blouse", "Sundress"]
+# colors = ["Blue", "Black", "Red", "White", "Grey", "Brown", "Yellow", "Orange", "Azure", "Purple", "Pink", "Green", "Violet"]
+# websites = ["www.koton.com", "www.lcwaikiki.com", "www.boyner.com.tr", "www.defacto.com.tr", "www.trendyol.com", "www2.hm.com/tr_tr"]
 
 
 class TaggingEngine():
@@ -113,7 +113,9 @@ class TaggingEngine():
 		
 		for info in soup.findAll('a', href=True):
 			link = info['href']
-			link = "https://google.com" + link
+			start = link.find("q=", 0, len(link) - 1)+len("q=")
+			end = link.find("&", start, len(link) - 1)
+			link = link[start:end]
 			image = info.findAll('img')
 			if image and website in link:
 				count += 1
@@ -126,22 +128,4 @@ class TaggingEngine():
 				shops.append(website)
 			if count >= MAX_RESULTS:
 				break
-		# 	website = website.strip()
-		# 	if(count < MAX_RESULTS and info['href'].strip().startswith(website)):
-		# 		links.append( info['href'])
-		# 		count += 1
-		# 		request = requests.get(info['href'], headers=headers)
-		# 		anotherSoup = BeautifulSoup(request.text, 'lxml')
-		# 		for image in anotherSoup.findAll('img'):
-		# 			try:
-		# 				if (len(image['src']) > 40 and ((".jpg" in image['src']) or (".jpeg" in image['src']) or (".png" in image['src'])) and "header" not in image['src'] and "icon" not in image['src'] and "logo" not in image['src'] and "navigasyon" not in image['src']):
-
-		# 					if(image['src'].startswith("//")):
-		# 						image['src'] = "https://" + image['src'][2:]
-		# 					if( "defacto" in image['src'] and "/6/" not in image['src']):
-		# 						continue
-		# 					images.append( image['src'])
-		# 					break		
-		# 			except Exception:
-		# 				a = 1
 		return links, images, names, prices, genders, shops

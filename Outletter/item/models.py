@@ -8,7 +8,7 @@ from src.choices import GenderChoices, ShopChoices, LabelChoices
 class BaseItem(models.Model):
     picture = models.ImageField(upload_to='item_pictures')
     for_gender = models.CharField(choices=GenderChoices.choices, max_length=6, default=GenderChoices.MALE)
-    shop = models.CharField(choices=ShopChoices.choices, max_length=256, default=ShopChoices.KOTON)
+    shop = models.CharField(choices=ShopChoices.choices, max_length=256, default=ShopChoices.TRENDYOL)
     label = models.CharField(choices=ShopChoices.choices, max_length=30, default=LabelChoices.NONE)
     
     REQUIRED_FIELDS = ['picture', 'for_gender', 'shop']

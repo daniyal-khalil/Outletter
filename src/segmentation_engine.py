@@ -15,7 +15,7 @@ class SegmentationEngine(object):
     def __init__(self, model):
         self.model = model
         
-    def get_dress(self, img, h, w):
+    def segment(self, img, h, w):
         img = tf.image.resize_with_pad(img,target_height=h,target_width=w)
         rgb  = img.numpy()
         fl = np.expand_dims(img,axis=0)/ 255.
@@ -29,7 +29,6 @@ class SegmentationEngine(object):
         rgbx = np.concatenate((rgb,dummy*255),axis=-1)
         rgbs = np.concatenate((cfx,seq*255.),axis=-1)
         return np.where(seq < 0.7, 255, c1x), rgbs
-
 
 
 
