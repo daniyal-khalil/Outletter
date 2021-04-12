@@ -6,6 +6,13 @@ services:
     build:
       context: ..
       dockerfile: docker/backend/Dockerfile
+    shm_size: "8gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      - DISPLAY=$DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
     depends_on:
       - db
   backend-shell:
@@ -14,3 +21,10 @@ services:
       dockerfile: docker/backend/Dockerfile
     volumes:
       - ..:/code
+    shm_size: "8gb"
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+      - DISPLAY=$DISPLAY
+      - NVIDIA_VISIBLE_DEVICES=all
