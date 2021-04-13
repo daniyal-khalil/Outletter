@@ -18,7 +18,6 @@ from src.similarity_engine import SimilarityEngine
 from src.segmentation_engine import SegmentationEngine
 from src.tagging_engine import TaggingEngine
 from src.choices import GenderChoices, ShopChoices, LabelChoices
-import json
 IMG_SIZE = (224,224)
 
 class ItemListView(views.APIView):
@@ -67,20 +66,24 @@ class ItemListView(views.APIView):
 	
 	def run_engines(self, query_item):
 		# Initialize the 3 engines required for processing
-		segmenter  = SegmentationEngine(settings.SEGEMENTATION_MODEL)
+		segmenter  = SegmentationEngine(settings.SEGMENTATION_MODEL)
 		similarityEngine = SimilarityEngine(settings.SIMILARITY_MODEL)
 		tagger = TaggingEngine()
 
 		# Load the Query Image
-		queryImage = cv2.imread(query_item.picture.url[1:])
+		queryImage = [cv2.imread(query_item.picture.url[1:])]
 		
 		# Segment the query Image
-		segmented_queryImage, png_for_gcloud = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
-		
+		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
+		segmented_queryImage = segmented_queryImage[0]
+		segmented_queryImage_label = segmented_queryImage_label[0]
+		segmented_queryImage_png = segmented_queryImage_png[0]
+		print(segmented_queryImage_label)
+
 		# Save the segmented query image
 		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
 		cv2.imwrite(query_item.picture.url[1:], segmented_queryImage)
-		cv2.imwrite(png_for_cloud_name, png_for_gcloud)
+		cv2.imwrite(png_for_cloud_name, segmented_queryImage_png)
 
 		# Predict the label code and features for query Image
 		query_img_type_features, query_label_code = similarityEngine.predict_image(segmented_queryImage)
@@ -101,15 +104,18 @@ class ItemListView(views.APIView):
 								scraped_shops, scraped_names, scraped_prices, scraped_urls)
 
 		# Read all scraped images
-		scraped_images = [cv2.resize(cv2.imread(item.picture.url[1:]), IMG_SIZE) for item in scraped_items]
+		scraped_images = [segmenter.aspect_resize(cv2.imread(item.picture.url[1:]), IMG_SIZE[0], IMG_SIZE[1]) for item in scraped_items]
 
-		# Segment all the scraped_images
-		segmented_scraped_images = [segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0] for img in scraped_images]
+		# Temporarily until segmenter is fast
+		segmented_scraped_images = scraped_images
 
-		# # Save and resize all scraped segmented images
-		# resized_segmented_scraped_images = []
-		# for i in range(len(segmented_scraped_images)):
-		# 	cv2.imwrite(scraped_items[i].picture.url[1:], segmented_scraped_images[i])
+		# # Segment all the scraped_images
+		# segmented_scraped_images = [segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0] for img in scraped_images]
+
+		# # # Save and resize all scraped segmented images
+		# # resized_segmented_scraped_images = []
+		# # for i in range(len(segmented_scraped_images)):
+		# # 	cv2.imwrite(scraped_items[i].picture.url[1:], segmented_scraped_images[i])
 
 		# Sort all segmented scraped images by similarity to the query image
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)

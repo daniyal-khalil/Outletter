@@ -145,6 +145,7 @@ cython_debug/
 logs.*
 
 resources/*.h5
+resources/*.pth
 .h5
 .png
 .jpg
