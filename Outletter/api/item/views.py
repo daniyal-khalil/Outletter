@@ -64,87 +64,50 @@ class ItemListView(views.APIView):
 		else:
 			return response.Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	
-	def apply_masks(images, outputs, labels):
-		output_images = []
-		output_labels = []
-		for i in range(len(images)):
-			img = images[i]
-			instances = outputs[i]["instances"].to("cpu").get_fields()
-			image_instances = len(instances['pred_classes'])
-			if image_instances == 0:
-				output_images.append(img)
-				output_labels.append("None")
-			else:
-				img_scores = instances['scores']
-				loc = np.argmax(img_scores)
-				img_mask = instances['pred_masks'][loc]
-				img = np.where(np.stack((img_mask,)*3, axis=-1) , img, 255)
-				output_images.append(img)
-				output_labels.append(labels[instances['pred_classes'][loc]])
-		return output_images, output_labels
-	
-	def aspect_resize(src, tar_h, tar_w):
-		h,w,c = src.shape
-		max_dim = max(h,w)
-		if max_dim == h:
-			max_dim_name = 'h'
-		else:
-			max_dim_name = 'w'
-		if max_dim_name == 'h':
-			ratio = tar_h / h
-		else:
-			ratio = tar_w / w
-		
-		new_h = (int)(round(ratio * h))
-		new_w = (int)(round(ratio * w))
-		src = cv2.resize(src, (new_w, new_h))
-
-		if max_dim_name == 'h':
-			diff = (int)((tar_w - new_w) / 2)
-			dest = cv2.copyMakeBorder(src, 0, 0, diff, tar_w - new_w - diff, cv2.BORDER_CONSTANT, 0)
-		else:
-			diff = (int)((tar_h - new_h) / 2)
-			dest = cv2.copyMakeBorder(src, diff, tar_h - new_h - diff, 0, 0, cv2.BORDER_CONSTANT, 0)
-
-		return dest
-	
 	def run_engines(self, query_item):
-		# # Initialize the 3 engines required for processing
-		# segmenter  = SegmentationEngine(settings.SEGEMENTATION_MODEL)
-		# similarityEngine = SimilarityEngine(settings.SIMILARITY_MODEL)
-		# tagger = TaggingEngine()
+		# Initialize the 3 engines required for processing
+		segmenter  = SegmentationEngine(settings.SEGMENTATION_MODEL)
+		similarityEngine = SimilarityEngine(settings.SIMILARITY_MODEL)
+		tagger = TaggingEngine()
 
-		# # Load the Query Image
-		# queryImage = cv2.imread(query_item.picture.url[1:])
+		# Load the Query Image
+		queryImage = [cv2.imread(query_item.picture.url[1:])]
 		
-		# # Segment the query Image
-		# segmented_queryImage, png_for_gcloud = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
-		
-		# # Save the segmented query image
-		# png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
-		# cv2.imwrite(query_item.picture.url[1:], segmented_queryImage)
-		# cv2.imwrite(png_for_cloud_name, png_for_gcloud)
+		# Segment the query Image
+		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
+		segmented_queryImage = segmented_queryImage[0]
+		segmented_queryImage_label = segmented_queryImage_label[0]
+		segmented_queryImage_png = segmented_queryImage_png[0]
+		print(segmented_queryImage_label)
 
-		# # Predict the label code and features for query Image
-		# query_img_type_features, query_label_code = similarityEngine.predict_image(segmented_queryImage)
-		# query_label = similarityEngine.decode_query_label(query_label_code)
-		
-		# # Do tagging on the segmented query image
-		# scraped_urls, scraped_image_links, scraped_names, scraped_prices, scraped_genders, scraped_shops, tagged_texts, tagged_color = tagger.tagImage(
-		# 	png_for_cloud_name, query_item.shop, query_item.for_gender, query_label)
-		
-		# # Update the label, text and color for the query items
-		# data = {'texts': tagged_texts, 'color': tagged_color, 'label': query_label}
-		# query_item_update_serializer = QueryItemUpdateSerializer(query_item, data=data)
-		# if query_item_update_serializer.is_valid():
-		# 	query_item = query_item_update_serializer.save()
+		# Save the segmented query image
+		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
+		cv2.imwrite(query_item.picture.url[1:], segmented_queryImage)
+		cv2.imwrite(png_for_cloud_name, segmented_queryImage_png)
 
-		# # Create the scraped objects in the database
-		# scraped_items = self.create_scraped_items_from_url(scraped_image_links, scraped_genders, 
-		# 						scraped_shops, scraped_names, scraped_prices, scraped_urls)
+		# Predict the label code and features for query Image
+		query_img_type_features, query_label_code = similarityEngine.predict_image(segmented_queryImage)
+		query_label = similarityEngine.decode_query_label(query_label_code)
+		
+		# Do tagging on the segmented query image
+		scraped_urls, scraped_image_links, scraped_names, scraped_prices, scraped_genders, scraped_shops, tagged_texts, tagged_color = tagger.tagImage(
+			png_for_cloud_name, query_item.shop, query_item.for_gender, query_label)
+		
+		# Update the label, text and color for the query items
+		data = {'texts': tagged_texts, 'color': tagged_color, 'label': query_label}
+		query_item_update_serializer = QueryItemUpdateSerializer(query_item, data=data)
+		if query_item_update_serializer.is_valid():
+			query_item = query_item_update_serializer.save()
 
-		# # Read all scraped images
-		# scraped_images = [cv2.resize(cv2.imread(item.picture.url[1:]), IMG_SIZE) for item in scraped_items]
+		# Create the scraped objects in the database
+		scraped_items = self.create_scraped_items_from_url(scraped_image_links, scraped_genders, 
+								scraped_shops, scraped_names, scraped_prices, scraped_urls)
+
+		# Read all scraped images
+		scraped_images = [segmenter.aspect_resize(cv2.imread(item.picture.url[1:]), IMG_SIZE[0], IMG_SIZE[1]) for item in scraped_items]
+
+		# Temporarily until segmenter is fast
+		segmented_scraped_images = scraped_images
 
 		# # Segment all the scraped_images
 		# segmented_scraped_images = [segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0] for img in scraped_images]
@@ -154,19 +117,18 @@ class ItemListView(views.APIView):
 		# # for i in range(len(segmented_scraped_images)):
 		# # 	cv2.imwrite(scraped_items[i].picture.url[1:], segmented_scraped_images[i])
 
-		# # Sort all segmented scraped images by similarity to the query image
-		# given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
-		# sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, query_label_code, given_img_type_features, given_img_type_labels)
-		# sorted_scraped_items = [scraped_items[ind] for ind in sortedIndices]
+		# Sort all segmented scraped images by similarity to the query image
+		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
+		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, query_label_code, given_img_type_features, given_img_type_labels)
+		sorted_scraped_items = [scraped_items[ind] for ind in sortedIndices]
 
-		# # Update the label for the scraped items
-		# for i in range(len(scraped_images)):
-		# 	item = sorted_scraped_items[i]
-		# 	data = {"label": resultLabels[i]}
-		# 	scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
-		# 	if scraped_item_update_serializer.is_valid():
-		# 		sorted_scraped_items[i] = scraped_item_update_serializer.save()
+		# Update the label for the scraped items
+		for i in range(len(scraped_images)):
+			item = sorted_scraped_items[i]
+			data = {"label": resultLabels[i]}
+			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
+			if scraped_item_update_serializer.is_valid():
+				sorted_scraped_items[i] = scraped_item_update_serializer.save()
 
-		# # Serialize the response and return
-		# return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
-		return "bc"
+		# Serialize the response and return
+		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data

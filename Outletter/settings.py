@@ -117,9 +117,9 @@ MODEL_DIR = os.path.join(BASE_DIR, 'resources')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-# import tensorflow as tf
-# model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
-# SIMILARITY_MODEL = tf.keras.Model(inputs=model.layers[0].input,outputs=[model.layers[-2].output, model.layers[-1].output])
+import tensorflow as tf
+model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
+SIMILARITY_MODEL = tf.keras.Model(inputs=model.layers[0].input,outputs=[model.layers[-2].output, model.layers[-1].output])
 
 import detectron2
 from detectron2 import model_zoo
@@ -134,8 +134,8 @@ cfg = get_cfg()
 cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
 cfg.OUTPUT_DIR = MODEL_DIR
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_0002999.pth") 
-
-cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.6   # set the testing threshold for this model
+cfg.MODEL.DEVICE = "cpu"
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5   # set the testing threshold for this model
 cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 64
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 13 
 
