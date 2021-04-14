@@ -29,6 +29,10 @@ Install Nvidia Container Toolkit for GPU usage for Tensorflow although you wont 
 
 [Download Nvidia Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker)
 
+Download the model weights from the link and create a folder named: "resources" in the Base folder and put the weights in it.
+
+[Download Weights](https://drive.google.com/drive/folders/1bk8bHEn5v6oUqgPWdWoawREcKOu1Xi4C?usp=sharing)
+
 ## Without GPU
 
 ## Running django
