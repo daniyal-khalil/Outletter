@@ -132,3 +132,17 @@ class ItemListView(views.APIView):
 
 		# Serialize the response and return
 		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
+
+class ItemListTestView(views.APIView):
+	serializer_class = QueryItemCreateSerializer
+	query_set = QueryItem.objects.all()
+
+	def post(self, request, *args, **kwargs):
+		item_serializer = self.serializer_class(data=request.data)
+		if item_serializer.is_valid():
+			query_item = item_serializer.save()
+			sorted_scraped_items = ScrapedItem.objects.all()[:15]
+			res = ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
+			return response.Response(res, status=status.HTTP_200_OK)
+		else:
+			return response.Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
