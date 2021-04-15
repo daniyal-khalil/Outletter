@@ -4,5 +4,5 @@ from Outletter.api.item.views import ItemListView
 app_name = "item_api"
 
 urlpatterns = [
-    path("similarItems/", ItemListView.as_view(), name="similarItems"),
+    path("items/", ItemListView.as_view(), name="similar-items"),
 ]
