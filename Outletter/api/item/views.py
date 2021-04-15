@@ -8,7 +8,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile  
 from django.conf import settings
 
-from Outletter.api.item.serializers import QueryItemSerializer, QueryItemCreateSerializer,\
+from Outletter.api.item.serializers import QueryItemCreateSerializer,\
 				ScrapedItemCreateSerializer, ScrapedItemUpdateSerializer, QueryItemUpdateSerializer,\
 				ScrapingResponseSerializer
 									
@@ -17,7 +17,8 @@ from Outletter.item.models import ScrapedItem, QueryItem
 from src.similarity_engine import SimilarityEngine
 from src.segmentation_engine import SegmentationEngine
 from src.tagging_engine import TaggingEngine
-from src.choices import GenderChoices, ShopChoices, LabelChoices
+from src.choices import LabelChoicesQueried as lc
+import time
 IMG_SIZE = (224,224)
 
 class ItemListView(views.APIView):
@@ -56,10 +57,12 @@ class ItemListView(views.APIView):
 		return scraped_items
 
 	def post(self, request, *args, **kwargs):
+		start = time.time()
 		item_serializer = self.serializer_class(data=request.data)
 		if item_serializer.is_valid():
 			query_item = item_serializer.save()
 			res = self.run_engines(query_item)
+			print("TIME: ", time.time() - start)
 			return response.Response(res, status=status.HTTP_200_OK)
 		else:
 			return response.Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -71,30 +74,31 @@ class ItemListView(views.APIView):
 		tagger = TaggingEngine()
 
 		# Load the Query Image
-		queryImage = [cv2.imread(query_item.picture.url[1:])]
+		queryImage = cv2.imread(query_item.picture.url[1:])
 		
 		# Segment the query Image
 		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
-		segmented_queryImage = segmented_queryImage[0]
-		segmented_queryImage_label = segmented_queryImage_label[0]
-		segmented_queryImage_png = segmented_queryImage_png[0]
-		print(segmented_queryImage_label)
-
+		
 		# Save the segmented query image
 		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
 		cv2.imwrite(query_item.picture.url[1:], segmented_queryImage)
 		cv2.imwrite(png_for_cloud_name, segmented_queryImage_png)
 
-		# Predict the label code and features for query Image
+		if segmented_queryImage_label == lc.NONE:
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
+
+		# Predict the features for query Image
 		query_img_type_features, query_label_code = similarityEngine.predict_image(segmented_queryImage)
-		query_label = similarityEngine.decode_query_label(query_label_code)
 		
 		# Do tagging on the segmented query image
 		scraped_urls, scraped_image_links, scraped_names, scraped_prices, scraped_genders, scraped_shops, tagged_texts, tagged_color = tagger.tagImage(
-			png_for_cloud_name, query_item.shop, query_item.for_gender, query_label)
+			png_for_cloud_name, query_item.shop, query_item.for_gender, segmented_queryImage_label)
 		
+		if len(scraped_urls) == 0:
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
+
 		# Update the label, text and color for the query items
-		data = {'texts': tagged_texts, 'color': tagged_color, 'label': query_label}
+		data = {'texts': tagged_texts, 'color': tagged_color, 'label': segmented_queryImage_label}
 		query_item_update_serializer = QueryItemUpdateSerializer(query_item, data=data)
 		if query_item_update_serializer.is_valid():
 			query_item = query_item_update_serializer.save()
@@ -119,7 +123,7 @@ class ItemListView(views.APIView):
 
 		# Sort all segmented scraped images by similarity to the query image
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
-		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, query_label_code, given_img_type_features, given_img_type_labels)
+		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_items[ind] for ind in sortedIndices]
 
 		# Update the label for the scraped items
@@ -129,7 +133,11 @@ class ItemListView(views.APIView):
 			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
 			if scraped_item_update_serializer.is_valid():
 				sorted_scraped_items[i] = scraped_item_update_serializer.save()
-
+		
+		# Remove duplicate items if being returned
+		url_set = [i.url for j, i in enumerate(sorted_scraped_items)]
+		sorted_scraped_items = [i for j, i in enumerate(sorted_scraped_items) if i.url not in url_set[:j]]
+		
 		# Serialize the response and return
 		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
 

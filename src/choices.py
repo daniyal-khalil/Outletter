@@ -13,7 +13,7 @@ class ShopChoices(models.TextChoices):
     TRENDYOL = "www.trendyol.com"
     HM = "www2.hm.com/tr_tr"
 
-class LabelChoices(models.TextChoices):
+class LabelChoicesScraped(models.TextChoices):
     BRA = "Bra"
     BRIEFS = "Briefs"
     CAPRIS = "Capris"
@@ -45,4 +45,20 @@ class LabelChoices(models.TextChoices):
     TRUNK = "Trunk"
     TSHIRTS = "Tshirts"
     TUNICS = "Tunics"
+    NONE = "None"
+
+class LabelChoicesQueried(models.TextChoices):
+    SHORT_SLEEVED_SHIRT = "short_sleeved_shirt"
+    LONG_SLEEVED_SHIRT = "long_sleeved_shirt"
+    SHORT_SLEEVED_OUTWEAR = "short_sleeved_outwear"
+    LONG_SLEEVED_OUTWEAR = "long_sleeved_outwear"
+    VEST = "vest"
+    SLING = "sling"
+    SHORTS = "shorts"
+    TROUSERS = "trousers"
+    SKIRT = "skirt"
+    SHORT_SLEEVED_DRESS = "short_sleeved_dress"
+    LONG_SLEEVED_DRESS = "long_sleeved_dress"
+    VEST_DRESS = "vest_dress"
+    SLING_DRESS = "sling_dress"
     NONE = "None"

@@ -2,7 +2,7 @@ from Outletter.item.models import ScrapedItem, QueryItem
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import serializers
 
-from src.choices import GenderChoices, ShopChoices, LabelChoices
+from src.choices import GenderChoices, ShopChoices, LabelChoicesQueried, LabelChoicesScraped
 
 class QueryItemCreateSerializer(serializers.ModelSerializer):
     gender = serializers.ChoiceField(required=True, source='for_gender', choices=GenderChoices.choices)
@@ -24,7 +24,7 @@ class QueryItemCreateSerializer(serializers.ModelSerializer):
 
 class QueryItemUpdateSerializer(serializers.ModelSerializer):
     color = serializers.CharField(required=True)
-    label = serializers.ChoiceField(required=True, choices=LabelChoices.choices)
+    label = serializers.ChoiceField(required=True, choices=LabelChoicesQueried.choices)
     texts = ArrayField(serializers.CharField())
 
     class Meta:
@@ -68,7 +68,7 @@ class ScrapedItemCreateSerializer(serializers.ModelSerializer):
         )
     
 class ScrapedItemUpdateSerializer(serializers.ModelSerializer):
-    label = serializers.ChoiceField(required=True, choices=LabelChoices.choices)
+    label = serializers.ChoiceField(required=True, choices=LabelChoicesScraped.choices)
 
     class Meta:
         model = ScrapedItem

@@ -1,10 +1,10 @@
-1- Create label alternatives for all cloth types e.g 'Tshirts': 'T Shirts or tshirts or t-shirts or t shirts or T-shirts'
+1- Create label alternatives for all cloth types e.g 'Tshirts': 'T Shirts or tshirts or t-shirts or t shirts or T-shirts' (not required)
 
-2- check if any field is empty in query, remove from query create a query builder
+2- check if any field is empty in query, remove from query create a query builder (done)
 
-3- Figure out site parameter in the query by trial and error
+3- Figure out site parameter in the query by trial and error (not required)
 
-4- Remove duplicate urls after sorting (Usman) keep in debug
+4- Remove duplicate urls after sorting (Usman) keep in debug (done)
 
 5- check if scraper working on all websites as expected (price and name)
 
