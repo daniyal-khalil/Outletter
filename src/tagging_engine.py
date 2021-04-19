@@ -47,9 +47,10 @@ class TaggingEngine():
 		vision_scores = np.array(vision_scores)
 		vision_colors = vision_all_colors[np.where(vision_scores >= 25)]
 
-		color_dict = {'white': [255,255,255], 'black': [0,0,0], 'grey': [128,128,128], 'light blue': [0,0,255], 'light green': [0,255,0],
-					'red': [255,0,0], 'yellow': [255,255,0], 'dark blue': [0,0,128], 'dark green': [0,128,0],
-					'purple': [128,0,128], 'orange': [255,165,0], 'brown': [160,82,45], 'pink': [255,105,180]}
+		color_dict={'white':[255,255,255],'black':[0,0,0],'grey':[128,128,128],'lightblue':[114,188,212],
+					'lightgreen':[44,238,144],'blue':[0,0,255],'green':[0,255,0],'darkblue':[0,0,128],
+					'darkgreen':[0,100,0],'red':[255,0,0],'yellow':[255,255,0],'purple':[186,85,211],
+					'orange':[255,165,0],'brown':[205,133,63],'pink':[255,105,180]} 
 
 		colors = np.array(list(color_dict.values()))
 
@@ -69,7 +70,6 @@ class TaggingEngine():
 						break
 				if check:
 					top_colors.append(k)
-		
 		return list(set(top_colors))
 	
 	
@@ -104,7 +104,7 @@ class TaggingEngine():
 		r = requests.get(url, headers=headers)
 		soup = BeautifulSoup(r.text, 'html.parser')
 		
-		MAX_RESULTS = 30
+		MAX_RESULTS = 15
 		count = 0
 		links = []
 		images = []
@@ -122,7 +122,7 @@ class TaggingEngine():
 			if "%" in link:
 				link = get_link(link, "", "%")
 			image = info.findAll('img')
-			if image and website in link:
+			if image and website in link and link not in links:
 				count += 1
 				image = image[0]['src']
 				links.append(link)

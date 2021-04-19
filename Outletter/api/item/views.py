@@ -108,35 +108,42 @@ class ItemListView(views.APIView):
 								scraped_shops, scraped_names, scraped_prices, scraped_urls)
 
 		# Read all scraped images
-		scraped_images = [segmenter.aspect_resize(cv2.imread(item.picture.url[1:]), IMG_SIZE[0], IMG_SIZE[1]) for item in scraped_items]
+		# scraped_images = [segmenter.aspect_resize(cv2.imread(item.picture.url[1:]), IMG_SIZE[0], IMG_SIZE[1]) for item in scraped_items]
+		scraped_images = [cv2.imread(item.picture.url[1:]) for item in scraped_items]
+		
+		# # Temporarily until segmenter is fast
+		# segmented_scraped_images = scraped_images
 
-		# Temporarily until segmenter is fast
-		segmented_scraped_images = scraped_images
+		# Segment all the scraped_images
+		segmented_scraped_images = []
+		scraped_image_items = []
+		for i, img in enumerate(scraped_images):
+			try:
+				segmented_scraped_images.append(segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0])
+				scraped_image_items.append(scraped_items[i])
+			except:
+				print('Empty Image Encountered')
 
-		# # Segment all the scraped_images
-		# segmented_scraped_images = [segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0] for img in scraped_images]
-
-		# # # Save and resize all scraped segmented images
-		# # resized_segmented_scraped_images = []
-		# # for i in range(len(segmented_scraped_images)):
-		# # 	cv2.imwrite(scraped_items[i].picture.url[1:], segmented_scraped_images[i])
+		# Save all scraped segmented images
+		for i in range(len(segmented_scraped_images)):
+			cv2.imwrite(scraped_image_items[i].picture.url[1:], segmented_scraped_images[i])
 
 		# Sort all segmented scraped images by similarity to the query image
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
 		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, given_img_type_features, given_img_type_labels)
-		sorted_scraped_items = [scraped_items[ind] for ind in sortedIndices]
+		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
 
 		# Update the label for the scraped items
-		for i in range(len(scraped_images)):
+		for i in range(len(scraped_image_items)):
 			item = sorted_scraped_items[i]
 			data = {"label": resultLabels[i]}
 			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
 			if scraped_item_update_serializer.is_valid():
 				sorted_scraped_items[i] = scraped_item_update_serializer.save()
 		
-		# Remove duplicate items if being returned
-		url_set = [i.url for j, i in enumerate(sorted_scraped_items)]
-		sorted_scraped_items = [i for j, i in enumerate(sorted_scraped_items) if i.url not in url_set[:j]]
+		# # Remove duplicate items if being returned
+		# url_set = [i.url for j, i in enumerate(sorted_scraped_items)]
+		# sorted_scraped_items = [i for j, i in enumerate(sorted_scraped_items) if i.url not in url_set[:j]]
 		
 		# Serialize the response and return
 		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
