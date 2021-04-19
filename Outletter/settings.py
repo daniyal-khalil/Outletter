@@ -40,11 +40,15 @@ INSTALLED_APPS = [
 
     # External Apps
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Internal Apps
     'Outletter',
     'Outletter.user',
     'Outletter.item',
+    'Outletter.review',
+    'Outletter.like',
+    'Outletter.wish',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +62,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'Outletter.urls'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 
 TEMPLATES = [
     {

@@ -2,7 +2,9 @@ from io import BytesIO
 from PIL import Image
 import requests, uuid, cv2
 
-from rest_framework import views, response, status
+from rest_framework import views, response, status, permissions
+from rest_framework.mixins import RetrieveModelMixin
+from rest_framework.viewsets import GenericViewSet
 
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile  
@@ -10,7 +12,7 @@ from django.conf import settings
 
 from Outletter.api.item.serializers import QueryItemCreateSerializer,\
 				ScrapedItemCreateSerializer, ScrapedItemUpdateSerializer, QueryItemUpdateSerializer,\
-				ScrapingResponseSerializer
+				ScrapingResponseSerializer, ScrapedItemSerializer
 									
 from Outletter.item.models import ScrapedItem, QueryItem
 
@@ -21,9 +23,17 @@ from src.choices import LabelChoicesQueried as lc
 import time
 IMG_SIZE = (224,224)
 
+class ItemView(RetrieveModelMixin, GenericViewSet):
+	serializer_class = ScrapedItemSerializer
+	queryset = ScrapedItem.objects.all()
+	permission_classes = (permissions.AllowAny,)
+	lookup_field = "id"
+	lookup_url_kwarg = "id"
+
 class ItemListView(views.APIView):
 	serializer_class = QueryItemCreateSerializer
 	query_set = QueryItem.objects.all()
+	permission_classes = (permissions.AllowAny,)
 
 	def download_image(self, image_url):
 		res = requests.get(image_url)
@@ -157,6 +167,7 @@ class ItemListTestView(views.APIView):
 		if item_serializer.is_valid():
 			query_item = item_serializer.save()
 			sorted_scraped_items = ScrapedItem.objects.all()[:15]
+			print(sorted_scraped_items[0].pk)
 			res = ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
 			return response.Response(res, status=status.HTTP_200_OK)
 		else:

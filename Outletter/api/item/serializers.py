@@ -1,4 +1,8 @@
 from Outletter.item.models import ScrapedItem, QueryItem
+from Outletter.review.models import Review
+from Outletter.api.review.serializers import ReviewDetailSerializer
+from Outletter.like.models import Like
+from Outletter.wish.models import Wish
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import serializers
 
@@ -80,6 +84,10 @@ class ScrapedItemUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 class ScrapedItemSerializer(serializers.ModelSerializer):
+    item_reviews = serializers.SerializerMethodField()
+    item_likes_count = serializers.SerializerMethodField()
+    item_wish_count = serializers.SerializerMethodField()
+
     class Meta:
         model = ScrapedItem
         fields = '__all__'
@@ -89,6 +97,15 @@ class ScrapedItemSerializer(serializers.ModelSerializer):
         if not self.context.get("debug", None):
             result.pop("label")
         return result
+    
+    def get_item_reviews(self, obj):
+        return ReviewDetailSerializer(Review.objects.filter(rel_item=obj), many=True).data
+    
+    def get_item_likes_count(self, obj):
+        return Like.objects.filter(rel_item=obj).count()
+    
+    def get_item_wish_count(self, obj):
+        return Wish.objects.filter(rel_item=obj).count()
 
 class ScrapingResponseSerializer(serializers.Serializer):
     query_item = serializers.SerializerMethodField()
