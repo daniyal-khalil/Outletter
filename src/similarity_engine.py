@@ -7,12 +7,11 @@ from sklearn import preprocessing
 from sklearn.neighbors import NearestNeighbors
 from tensorflow.keras.models import load_model
 
-from src.choices import LabelChoices as lc
+from src.choices import LabelChoicesScraped as lc
 
 class SimilarityEngine():
 	def __init__(self, model):
 		self.model = model
-		# ["Bra", "Briefs", "Capris", "Casual Shoes", "Dresses", "Flats", "Flip Flops", "Formal Shoes", "Heels", "Innerwear Vests", "Jackets", "Jeans", "Kurtas", "Kurtis", "Leggings", "Night suits", "Nightdress", "Sandals", "Sarees", "Shirts", "Shorts", "Skirts", "Sports Shoes", "Sweaters", "Sweatshirts", "Tops", "Track Pants", "Trousers", "Trunk", "Tshirts", "Tunics"]
 		self.labels = [lc.BRA, lc.BRIEFS, lc.CAPRIS, lc.CASUALSHOES, lc.DRESSES, lc.FLATS, lc.FLIPFLOPS, lc.FORMALSHOES, lc.HEELS,
 		 lc.INNERVESTS, lc.JACKETS, lc.JEANS, lc.KURTAS, lc.KURTIS, lc.LEGGINGS, lc.NIGHTSUITS, lc.NIGHTDRESS, lc.SANDALS,
 		 lc.SAREES, lc.SHIRTS, lc.SHORTS, lc.SKIRTS, lc.SPORTSSHOES, lc.SWEATERS, lc.SWEATSHIRTS, lc.TOPS, lc.TRACKPANTS,
@@ -30,13 +29,16 @@ class SimilarityEngine():
 	def decode_query_label(self, itemLoc):
 		return self.labels[itemLoc]
 
-	def sortSimilarity(self, query_img_type_features,  itemLoc, given_img_type_features, given_img_type_labels):
+	def sortSimilarity(self, query_img_type_features, given_img_type_features, given_img_type_labels):
 		# Converting the image features and labels to numpy and standardizing them
 		query_img_type_features = query_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(query_img_type_features.numpy())
 
 		given_img_type_features = given_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(given_img_type_features.numpy())
 		given_img_type_labels = np.argmax(given_img_type_labels.numpy(), axis=1)
 		
+		# itemLoc = np.amax(given_img_type_labels)
+		itemLoc = 45
+
 		given_img_type_locs_top = np.where(given_img_type_labels == itemLoc)[0]
 		given_img_type_features_top = given_img_type_features[given_img_type_labels == itemLoc]
 		given_img_type_labels_top = given_img_type_labels[given_img_type_labels == itemLoc]
