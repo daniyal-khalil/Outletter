@@ -87,21 +87,74 @@ class TaggingEngine():
 		vision_texts = [] if len(list(vision_texts)) > 2 else list(vision_texts)
 		return vision_texts
 
-	def scrapeResults(self, query, website, gender):
+	def getPrice(link, website=""):
+		A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
+			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
+			)
+
+		Agent = A[random.randrange(len(A))]
+		headers = {'user-agent': Agent}
+		r = requests.get(link, headers=headers)
+		soup = BeautifulSoup(r.text, 'html.parser')
+		price = ""
+		name = ""
+
+		if website == "www.koton.com":
+		tag = soup.find('meta', {"name": "product:price:amount"})
+		price = tag['content']
+		tag = soup.find('meta', {"name": "og:title"})
+		name = tag['content']
+		return price, name
+
+		if website == "www.trendyol.com":
+		tag = soup.find('meta', {"name": "twitter:data1"})
+		price = tag['content']
+		tag = soup.find('meta', {"name": "description"})
+		split = tag['content']
+		split = split.split(' ')
+		name = split[0] + " " + split[1] + " "  + split[2] + " " + split[3] + " " + split[4]
+		print(type(split))
+		print(split)
+		return price, name
+
+		if website == "www.lcwaikiki.com":
+		tag = soup.find('span', {"class": "price"})
+		price = tag.get_text()
+
+		return price, name
+
+		if website == "www.boyner.com.tr":
+		tag = soup.find('p', {"class": "m-campaignPrice"})
+		if (tag != None):
+			print(tag.get_text())
+			price = tag.get_text()[:-3]
+		else:
+			tag = soup.find('ins', {"class": "price-payable"})
+			price = tag.get_text()[:-3]
+		tag = soup.find('meta', {"property": "og:title"})
+		if (tag != None):
+			name = tag['content']
+
+		return price, name
+
+
+
+	def scrapeResults(query, website, gender):
 		query = query.replace(":", "%3A").replace(
-			" ", "+").replace("/", "%2F").replace("@", "%40")
+		" ", "+").replace("/", "%2F").replace("@", "%40")
 		text = '' + query
 		url = 'https://www.google.com/search?q=' + text + '&source=lnms&tbm=isch'
 		A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
-				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
-				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
-				)
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
+			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
+			)
 		Agent = A[random.randrange(len(A))]
-		print(url)
+
 		headers = {'user-agent': Agent}
 		r = requests.get(url, headers=headers)
 		soup = BeautifulSoup(r.text, 'html.parser')
-		
+
 		MAX_RESULTS = 15
 		count = 0
 		links = []
@@ -110,22 +163,26 @@ class TaggingEngine():
 		prices = []
 		genders = []
 		shops = []
-		
+
 		for info in soup.findAll('a', href=True):
-			link = info['href']
-			start = link.find("q=", 0, len(link) - 1)+len("q=")
-			end = link.find("&", start, len(link) - 1)
-			link = link[start:end]
-			image = info.findAll('img')
-			if image and website in link:
-				count += 1
-				image = image[0]['src']
-				links.append(link)
-				images.append(image)
-				names.append("temp")
-				prices.append(19.99)
-				genders.append(gender)
-				shops.append(website)
-			if count >= MAX_RESULTS:
-				break
+		link = info['href']
+		start = link.find("q=", 0, len(link) - 1)+len("q=")
+		end = link.find("&", start, len(link) - 1)
+		link = link[start:end]
+		link = link.split('%')[0]
+		image = info.findAll('img')
+		if image and website in link:
+			count += 1
+			image = image[0]['src']
+			price, name = getPrice(link, website)
+			if (price != "" and name != ""):
+			links.append(link)
+			images.append(image)
+			names.append(name)
+			prices.append(price)
+			genders.append(gender)
+			shops.append(website)
+			count -=1
+		if count >= MAX_RESULTS:
+			break
 		return links, images, names, prices, genders, shops
