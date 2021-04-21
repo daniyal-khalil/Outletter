@@ -150,23 +150,28 @@ resources/*.pth
 .png
 .jpg
 .jpeg
+.gif
 
 media/*.png
 media/*.jpg
 media/*.JPG
 media/*.jpeg
+media/*.gif
 
 media/customer_id_result/*.png
 media/customer_id_result/*.jpg
 media/customer_id_result/*.JPG
 media/customer_id_result/*.jpeg
+media/customer_id_result/*.gif
 
 media/profile_pictures/*.png
 media/profile_pictures/*.jpg
 media/profile_pictures/*.JPG
 media/profile_pictures/*.jpeg
+media/profile_pictures/*.gif
 
 media/item_pictures/*.png
 media/item_pictures/*.jpg
 media/item_pictures/*.JPG
 media/item_pictures/*.jpeg
+media/item_pictures/*.gif

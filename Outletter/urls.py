@@ -22,4 +22,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/v1/", include("Outletter.api.user.urls"), name="user_api"),
     path("api/v1/", include("Outletter.api.item.urls"), name="item_api"),
+    path("api/v1/", include("Outletter.api.review.urls"), name="review_api"),
+    path("api/v1/", include("Outletter.api.like.urls"), name="like_api"),
+    path("api/v1/", include("Outletter.api.wish.urls"), name="wish_api"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    path('api-auth/', include('rest_framework.urls'))
+]

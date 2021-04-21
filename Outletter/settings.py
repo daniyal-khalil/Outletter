@@ -40,11 +40,15 @@ INSTALLED_APPS = [
 
     # External Apps
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Internal Apps
     'Outletter',
     'Outletter.user',
     'Outletter.item',
+    'Outletter.review',
+    'Outletter.like',
+    'Outletter.wish',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +62,13 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'Outletter.urls'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 
 TEMPLATES = [
     {
@@ -119,7 +130,7 @@ MEDIA_URL = '/media/'
 
 import tensorflow as tf
 model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
-SIMILARITY_MODEL = tf.keras.Model(inputs=model.layers[0].input,outputs=[model.layers[-2].output, model.layers[-1].output])
+SIMILARITY_MODEL = tf.keras.Model(inputs=model.layers[0].input, outputs=[model.layers[-2].output, model.layers[-1].output])
 
 import detectron2
 from detectron2 import model_zoo
