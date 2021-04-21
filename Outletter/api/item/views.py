@@ -142,7 +142,7 @@ class ItemListView(views.APIView):
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
 		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
-
+		# pickle.loads(base64.b64decode(response)) 
 		# Update the label for the scraped items
 		for i in range(len(scraped_image_items)):
 			item = sorted_scraped_items[i]
