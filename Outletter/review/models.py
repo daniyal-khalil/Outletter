@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 class Review(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField(max_length=500)
+    rating = models.DecimalField(max_digits=2, decimal_places=1)
     rel_user = models.ForeignKey(
         verbose_name=_("User Review"),
         to="user.User",
