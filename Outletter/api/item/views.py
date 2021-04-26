@@ -88,7 +88,7 @@ class ItemListView(views.APIView):
 		
 		# Segment the query Image
 		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
-		
+
 		# Save the segmented query image
 		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
 		cv2.imwrite(query_item.picture.url[1:], segmented_queryImage)
@@ -142,7 +142,7 @@ class ItemListView(views.APIView):
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
 		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
-		# pickle.loads(base64.b64decode(response)) 
+		
 		# Update the label for the scraped items
 		for i in range(len(scraped_image_items)):
 			item = sorted_scraped_items[i]

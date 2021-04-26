@@ -176,11 +176,15 @@ class TaggingEngine():
 				image = image[0]['src']
 				links.append(link)
 				images.append(image)
-				price, name = self.getPrice(link, website)
-				if (price != "" and name != ""):
-					names.append(name)
-					prices.append(float(price))
-				else:
+				try:
+					price, name = self.getPrice(link, website)
+					if (price != "" and name != ""):
+						names.append(name)
+						prices.append(float(price))
+					else:
+						names.append('Clothes from' + website)
+						prices.append(20.99)
+				except:
 					names.append('Clothes from' + website)
 					prices.append(20.99)
 				genders.append(gender)
