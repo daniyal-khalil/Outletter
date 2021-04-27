@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import torch
-
+import time
 from src.choices import LabelChoicesQueried as lc
 
 class SegmentationEngine(object):
@@ -62,6 +62,7 @@ class SegmentationEngine(object):
                 return img, self.labels[instances['pred_classes'][loc]], alpha_img
     
     def segment(self, imgs, h, w):
+        it = time.time()
         imgs = [self.aspect_resize(img, 800, 800) for img in imgs]
         input_imgs = [{"image": torch.from_numpy(img.transpose((2,0,1)))} for img in imgs]
         self.model.eval()
@@ -72,6 +73,8 @@ class SegmentationEngine(object):
             image, label, png = self.apply_mask(imgs[i], outputs[i])
             if label != lc.NONE:
                 seg_imgs.append((self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)))
+        ft = time.time()
+        print("seg TIme: ", ft - it)
         return seg_imgs
 
 

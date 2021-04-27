@@ -30,6 +30,7 @@ class SimilarityEngine():
 		return self.labels[itemLoc]
 
 	def sortSimilarity(self, query_img_type_features, given_img_type_features, given_img_type_labels):
+		it = time.time()
 		# Converting the image features and labels to numpy and standardizing them
 		query_img_type_features = query_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(query_img_type_features.numpy())
 
@@ -61,4 +62,7 @@ class SimilarityEngine():
 			sorted_indices += given_img_type_locs[ind[0]].tolist()
 			sorted_labels += [self.labels[t] for t in given_img_type_labels[ind[0]]]
 		
+		ft = time.time()
+		print("sim TIme: " + str(ft - it))
+
 		return sorted_indices, sorted_labels

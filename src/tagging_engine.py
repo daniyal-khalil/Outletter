@@ -10,6 +10,7 @@ class TaggingEngine():
 		self.client = vision.ImageAnnotatorClient()
 
 	def tagImage( self, img_name, shop, gender, label):
+		it = time.time()
 		content = None
 		with io.open(img_name, 'rb') as image_file:
 			content = image_file.read()
@@ -26,6 +27,8 @@ class TaggingEngine():
 		print(searchQuery)
 		
 		links, imageLinks, names, prices, genders, shops = self.scrapeResults( searchQuery, shop, gender)
+		ft = time.time()
+		print("tag TIme: " +  str(ft - it))
 		return links, imageLinks, names, prices, genders, shops, texts, dominant_colors[0]
 	
 	def get_colors(self, image):
