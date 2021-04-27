@@ -37,14 +37,16 @@ class SegmentationEngine(object):
         return dest
     
     def cut_sides(self, img, img_mask):
-        img_mask = img_mask.numpy()
-        mask_sum_0 = np.sum(img_mask, axis=0)
-        mask_sum_1 = np.sum(img_mask, axis=1)
+        #img_mask = img_mask.numpy()
+        mask_sum_0 = np.sum(img_mask, axis=1)
+        mask_sum_1 = np.sum(img_mask, axis=0)
         sum_0_l = np.where(mask_sum_0 != 0)[0][0]
         sum_0_r = np.where(mask_sum_0 != 0)[0][-1] + 1
         sum_1_t = np.where(mask_sum_1 != 0)[0][0]
         sum_1_b = np.where(mask_sum_1 != 0)[0][-1] + 1
-        return img[sum_0_l:sum_0_r, sum_1_t:sum_1_b], img_mask[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
+        my_img = img[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
+        my_mask = img_mask[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
+        return my_img, my_mask
 
     def apply_mask(self, img, output):
             instances = output["instances"].get_fields()
@@ -55,7 +57,7 @@ class SegmentationEngine(object):
                 img_scores = instances['scores'].cpu()
                 loc = np.argmax(img_scores)
                 img_mask = instances['pred_masks'][loc].cpu()
-                img, img_mask = self.cut_sides(img, img_mask)
+                img, img_mask = self.cut_sides(img, img_mask.numpy())
                 alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
                 alpha_img[:, :, 3] = img_mask  * 255
                 img = np.where(np.stack((img_mask,)*3, axis=-1) , img, 255)
@@ -64,10 +66,10 @@ class SegmentationEngine(object):
     def segment(self, imgs, h, w, query=False):
         it = time.time()
         if query:
-            input_img = {"image": torch.from_numpy(self.aspect_resize(imgs, 800, 800).transpose((2,0,1)))}
+            input_img = [{"image": torch.from_numpy(imgs.transpose((2,0,1)))}]
             self.model.eval()
             with torch.no_grad():
-                output = self.model(input_img)
+                output = self.model(input_img)[0]
             instances = output["instances"].get_fields()
             image_instances = len(instances['pred_classes'])
             if image_instances == 0:
@@ -81,12 +83,12 @@ class SegmentationEngine(object):
                     pred_label = self.labels[instances['pred_classes'][i]]
                     img = np.copy(imgs)
                     alpha_img_trans = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-                    alpha_img_trans[:, :, 3] = (pred_mask  * 105) + 150
-                    img, pred_mask = self.cut_sides(img, pred_mask)
+                    alpha_img_trans[:, :, 3] = (pred_mask  * 210) + 45
+                    img, pred_mask = self.cut_sides(img, pred_mask.numpy())
                     alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
                     alpha_img[:, :, 3] = pred_mask  * 255
                     img = np.where(np.stack((pred_mask,)*3, axis=-1) , img, 255)
-                    seg_items.append((img, pred_label, alpha_img, alpha_img_trans))
+                    seg_items.append((self.aspect_resize(img,h,w), pred_label, alpha_img, alpha_img_trans))
                 ft = time.time()
                 print("seg TIme: ", ft - it)
                 return seg_items

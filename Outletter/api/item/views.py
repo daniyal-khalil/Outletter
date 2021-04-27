@@ -75,7 +75,7 @@ class ItemListView(views.APIView):
 		item_serializer = self.serializer_class(data=request.data)
 		if item_serializer.is_valid():
 			query_item = item_serializer.save()
-			res = self.run_engines(query_item)
+			res = self.segment_query(query_item)
 			print("TIME: ", time.time() - start)
 			return response.Response(res, status=status.HTTP_200_OK)
 		else:
@@ -103,10 +103,10 @@ class ItemListView(views.APIView):
 			for segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png, segmented_queryImage_trans_png in segmented_images:
 				# Save the segmented query image
 				random_name = self.generate_random_string()
-				cv2.imwrite(random_name + ".jpg", segmented_queryImage)
-				cv2.imwrite(random_name + ".png", segmented_queryImage_png)
-				cv2.imwrite(random_name + "_trans.png", segmented_queryImage_png)
-				segmented_items_names_labels.append((random_name + "_trans.png", segmented_queryImage_label))
+				cv2.imwrite("./media/item_pictures" + random_name + ".jpg", segmented_queryImage)
+				cv2.imwrite("./media/item_pictures" + random_name + ".png", segmented_queryImage_png)
+				cv2.imwrite("./media/item_pictures" + random_name + "_trans.png", segmented_queryImage_trans_png)
+				segmented_items_names_labels.append(("/media/item_pictures" + random_name + "_trans.png", segmented_queryImage_label))
 
 			return QuerySegmentInitialSerializer(query_item, context={"seg_labels_imgs": segmented_items_names_labels}).data
 			
