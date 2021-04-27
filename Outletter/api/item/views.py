@@ -1,6 +1,7 @@
 from io import BytesIO
 from PIL import Image
 import requests, uuid, cv2
+import string, random 
 
 from rest_framework import views, response, status, permissions
 from rest_framework.mixins import RetrieveModelMixin
@@ -12,7 +13,7 @@ from django.conf import settings
 
 from Outletter.api.item.serializers import QueryItemCreateSerializer,\
 				ScrapedItemCreateSerializer, ScrapedItemUpdateSerializer, QueryItemUpdateSerializer,\
-				ScrapingResponseSerializer, ScrapedItemSerializer
+				ScrapingResponseSerializer, ScrapedItemSerializer, QuerySegmentInitialSerializer
 									
 from Outletter.item.models import ScrapedItem, QueryItem
 
@@ -66,6 +67,9 @@ class ItemListView(views.APIView):
 
 		return scraped_items
 
+	def generate_random_string(self, N=10):
+		return ''.join(random.choices(string.ascii_uppercase + string.digits, k=N)) 
+
 	def post(self, request, *args, **kwargs):
 		start = time.time()
 		item_serializer = self.serializer_class(data=request.data)
@@ -77,6 +81,35 @@ class ItemListView(views.APIView):
 		else:
 			return response.Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 	
+	def segment_query(self, query_item):
+		# Initialize the segmenter only
+		segmenter  = SegmentationEngine(settings.SEGMENTATION_MODEL)
+
+		# Load the Query Image
+		queryImage = cv2.imread(query_item.picture.url[1:])
+
+		# Create and query items array
+		segmented_items_names_labels = []
+
+		# Segment the query Image
+		try:
+			segmented_images = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1], query=True)
+		except:
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
+		
+		if len(segmented_images) == 1:
+			pass
+		elif len(segmented_images) > 1:
+			for segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png, segmented_queryImage_trans_png in segmented_images:
+				# Save the segmented query image
+				random_name = self.generate_random_string()
+				cv2.imwrite(random_name + ".jpg", segmented_queryImage)
+				cv2.imwrite(random_name + ".png", segmented_queryImage_png)
+				cv2.imwrite(random_name + "_trans.png", segmented_queryImage_png)
+				segmented_items_names_labels.append((random_name + "_trans.png", segmented_queryImage_label))
+
+			return QuerySegmentInitialSerializer(query_item, context={"seg_labels_imgs": segmented_items_names_labels}).data
+			
 	def run_engines(self, query_item):
 		# Initialize the 3 engines required for processing
 		segmenter  = SegmentationEngine(settings.SEGMENTATION_MODEL)
@@ -87,15 +120,15 @@ class ItemListView(views.APIView):
 		queryImage = cv2.imread(query_item.picture.url[1:])
 		
 		# Segment the query Image
-		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment([queryImage], IMG_SIZE[0], IMG_SIZE[1])[0]
-
+		try:
+			segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment([queryImage], IMG_SIZE[0], IMG_SIZE[1])[0]
+		except:
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
+		
 		# Save the segmented query image
 		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"
 		cv2.imwrite(query_item.picture.url[1:], segmented_queryImage)
 		cv2.imwrite(png_for_cloud_name, segmented_queryImage_png)
-
-		if segmented_queryImage_label == lc.NONE:
-			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
 
 		# Predict the features for query Image
 		query_img_type_features, query_label_code = similarityEngine.predict_image(segmented_queryImage)

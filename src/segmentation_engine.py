@@ -61,21 +61,49 @@ class SegmentationEngine(object):
                 img = np.where(np.stack((img_mask,)*3, axis=-1) , img, 255)
                 return img, self.labels[instances['pred_classes'][loc]], alpha_img
     
-    def segment(self, imgs, h, w):
+    def segment(self, imgs, h, w, query=False):
         it = time.time()
-        imgs = [self.aspect_resize(img, 800, 800) for img in imgs]
-        input_imgs = [{"image": torch.from_numpy(img.transpose((2,0,1)))} for img in imgs]
-        self.model.eval()
-        with torch.no_grad():
-            outputs = self.model(input_imgs)
-        seg_imgs = []
-        for i in range(len(imgs)):
-            image, label, png = self.apply_mask(imgs[i], outputs[i])
-            if label != lc.NONE:
-                seg_imgs.append((self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)))
-        ft = time.time()
-        print("seg TIme: ", ft - it)
-        return seg_imgs
+        if query:
+            input_img = {"image": torch.from_numpy(self.aspect_resize(imgs, 800, 800).transpose((2,0,1)))}
+            self.model.eval()
+            with torch.no_grad():
+                output = self.model(input_img)
+            instances = output["instances"].get_fields()
+            image_instances = len(instances['pred_classes'])
+            if image_instances == 0:
+                ft = time.time()
+                print("seg TIme: ", ft - it)
+                raise('No instance found!')
+            else:
+                seg_items = []
+                for i in range(image_instances):
+                    pred_mask = instances['pred_masks'][i].cpu()
+                    pred_label = self.labels[instances['pred_classes'][i]]
+                    img = np.copy(imgs)
+                    alpha_img_trans = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+                    alpha_img_trans[:, :, 3] = (pred_mask  * 105) + 150
+                    img, pred_mask = self.cut_sides(img, pred_mask)
+                    alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+                    alpha_img[:, :, 3] = pred_mask  * 255
+                    img = np.where(np.stack((pred_mask,)*3, axis=-1) , img, 255)
+                    seg_items.append((img, pred_label, alpha_img, alpha_img_trans))
+                ft = time.time()
+                print("seg TIme: ", ft - it)
+                return seg_items
+        else:
+            imgs = [self.aspect_resize(img, 800, 800) for img in imgs]
+            input_imgs = [{"image": torch.from_numpy(img.transpose((2,0,1)))} for img in imgs]
+            self.model.eval()
+            with torch.no_grad():
+                outputs = self.model(input_imgs)
+            seg_imgs = []
+            for i in range(len(imgs)):
+                image, label, png = self.apply_mask(imgs[i], outputs[i])
+                if label != lc.NONE:
+                    seg_imgs.append((self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)))
+            ft = time.time()
+            print("seg TIme: ", ft - it)
+            return seg_imgs
 
 
 

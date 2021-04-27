@@ -131,3 +131,33 @@ class ScrapingResponseSerializer(serializers.Serializer):
         if not result["query_item"]["debug"]:
             result.pop("query_item")
         return result
+
+class QueryOptionSerializer(serializers.Serializer):
+    image_name = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ("image_name", "label")
+    
+    def get_image_name(self, obj):
+        return obj[0]
+    
+    def get_label(self, obj):
+        return obj[1]
+
+class QuerySegmentInitialSerializer(serializers.Serializer):
+    n = serializers.SerializerMethodField()
+    query_item = serializers.SerializerMethodField()
+    options = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ("n", "query_item", "options")
+    
+    def get_n(self, obj):
+        return len(self.context.get("seg_labels_imgs"))
+    
+    def get_query_item(self, obj):
+        return QueryItemSerializer(obj).data
+    
+    def get_options(self, obj):
+        return [QueryOptionSerializer(t).data for t in self.context.get("seg_labels_imgs")]
