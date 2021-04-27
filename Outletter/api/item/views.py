@@ -127,9 +127,10 @@ class ItemListView(views.APIView):
 		# Segment all the scraped_images
 		segmented_scraped_images = []
 		scraped_image_items = []
-		for i, img in enumerate(scraped_images):
+		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1])
+		for i, img in enumerate(list_segmented_tuples):
 			try:
-				segmented_scraped_images.append(segmenter.segment(img, IMG_SIZE[0], IMG_SIZE[1])[0])
+				segmented_scraped_images.append(img[0])
 				scraped_image_items.append(scraped_items[i])
 			except:
 				print('Empty Image Encountered')

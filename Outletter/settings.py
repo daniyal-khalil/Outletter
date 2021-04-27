@@ -28,8 +28,6 @@ for key, value in env.items():
 
 AUTH_USER_MODEL = 'user.User'
 
-ALLOWED_HOSTS = ['*']
-
 # Application definition
 
 INSTALLED_APPS = [

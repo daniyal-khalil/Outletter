@@ -4,14 +4,14 @@
     "default": {
       "ENGINE": "django.db.backends.postgresql",
       "NAME": "outletter",
-      "HOST": "db",
+      "HOST": "127.0.0.1",
       "PASSWORD": "secret",
       "PORT": 5432,
       "USER": "outletter"
     }
   },
   "DEBUG": true,
-  "DOMAIN": "http://localhost:8000",
+  "DOMAIN": "http://0.0.0.0:8080",
   "LOG_DIR": "/code/logs/",
   "MEDIA_ROOT": "/code/tmp/media/",
   "MEDIA_URL": "/media/",
