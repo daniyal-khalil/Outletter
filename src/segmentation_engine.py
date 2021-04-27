@@ -62,7 +62,8 @@ class SegmentationEngine(object):
                 return img, self.labels[instances['pred_classes'][loc]], alpha_img
     
     def segment(self, imgs, h, w):
-        input_imgs = [{"image": torch.from_numpy(self.aspect_resize(img, 800, 800).transpose((2,0,1)))} for img in imgs]
+        imgs = [self.aspect_resize(img, 800, 800) for img in imgs]
+        input_imgs = [{"image": torch.from_numpy(img.transpose((2,0,1)))} for img in imgs]
         self.model.eval()
         with torch.no_grad():
             outputs = self.model(input_imgs)
