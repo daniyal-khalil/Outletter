@@ -49,7 +49,9 @@ class TaggingEngine():
 		vision_all_colors = np.array(vision_all_colors)
 		vision_scores = np.array(vision_scores)
 		vision_colors = vision_all_colors[np.where(vision_scores >= 25)]
-
+		if len(vision_colors) == 0:
+			max_score_idx = np.argmax(vision_scores)
+			vision_colors = [vision_all_colors[max_score_idx]]
 		color_dict={'white':[255,255,255],'black':[0,0,0],'grey':[128,128,128],'lightblue':[114,188,212],
 					'lightgreen':[44,238,144],'blue':[0,0,255],'green':[0,255,0],'darkblue':[0,0,128],
 					'darkgreen':[0,100,0],'red':[255,0,0],'yellow':[255,255,0],'purple':[186,85,211],
