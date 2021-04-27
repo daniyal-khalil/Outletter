@@ -6,7 +6,7 @@ from scipy.sparse import csr_matrix
 from sklearn import preprocessing
 from sklearn.neighbors import NearestNeighbors
 from tensorflow.keras.models import load_model
-
+import time
 from src.choices import LabelChoicesScraped as lc
 
 class SimilarityEngine():

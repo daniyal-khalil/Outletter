@@ -4,7 +4,7 @@ from google.cloud import vision
 import io, os, random
 from PIL import Image
 import numpy as np
-
+import time
 class TaggingEngine():
 	def __init__(self):
 		self.client = vision.ImageAnnotatorClient()
@@ -179,17 +179,19 @@ class TaggingEngine():
 				image = image[0]['src']
 				links.append(link)
 				images.append(image)
-				try:
-					price, name = self.getPrice(link, website)
-					if (price != "" and name != ""):
-						names.append(name)
-						prices.append(float(price))
-					else:
-						names.append('Clothes from' + website)
-						prices.append(20.99)
-				except:
-					names.append('Clothes from' + website)
-					prices.append(20.99)
+				names.append('Clothes from' + website)
+				prices.append(20.99)
+				# try:
+				# 	price, name = self.getPrice(link, website)
+				# 	if (price != "" and name != ""):
+				# 		names.append(name)
+				# 		prices.append(float(price))
+				# 	else:
+				# 		names.append('Clothes from' + website)
+				# 		prices.append(20.99)
+				# except:
+				# 	names.append('Clothes from' + website)
+				# 	prices.append(20.99)
 				genders.append(gender)
 				shops.append(website)
 			if count >= MAX_RESULTS:
