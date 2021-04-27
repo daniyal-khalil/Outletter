@@ -192,7 +192,7 @@ class ItemListView(views.APIView):
 		# Serialize the response and return
 		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
 
-	def run_engines_single(self, query_item, segment_results, segmenter):
+	def run_engines_single(self, query_item, segmented_results, segmenter):
 		# Initialize the 3 engines required for processing
 		similarityEngine = SimilarityEngine(settings.SIMILARITY_MODEL)
 		tagger = TaggingEngine()
