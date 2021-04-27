@@ -156,7 +156,7 @@ class TaggingEngine():
 		r = requests.get(url, headers=headers)
 		soup = BeautifulSoup(r.text, 'html.parser')
 
-		MAX_RESULTS = 15
+		MAX_RESULTS = 10
 		count = 0
 		links = []
 		images = []
