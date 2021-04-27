@@ -87,7 +87,7 @@ class ItemListView(views.APIView):
 		queryImage = cv2.imread(query_item.picture.url[1:])
 		
 		# Segment the query Image
-		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1])
+		segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png = segmenter.segment([queryImage], IMG_SIZE[0], IMG_SIZE[1])[0]
 
 		# Save the segmented query image
 		png_for_cloud_name = query_item.picture.url[1:query_item.picture.url.rindex(".")] + ".png"

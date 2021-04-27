@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import torch
 
 from src.choices import LabelChoicesQueried as lc
 
@@ -51,19 +52,26 @@ class SegmentationEngine(object):
             if image_instances == 0:
                 return img, self.labels[13], img
             else:
-                img_scores = instances['scores']
+                img_scores = instances['scores'].cpu()
                 loc = np.argmax(img_scores)
-                img_mask = instances['pred_masks'][loc]
+                img_mask = instances['pred_masks'][loc].cpu()
                 img, img_mask = self.cut_sides(img, img_mask)
                 alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
                 alpha_img[:, :, 3] = img_mask  * 255
                 img = np.where(np.stack((img_mask,)*3, axis=-1) , img, 255)
                 return img, self.labels[instances['pred_classes'][loc]], alpha_img
     
-    def segment(self, img, h, w):
-        img = self.aspect_resize(img, 800, 800)
-        image, label, png = self.apply_mask(img, self.model(img))
-        return self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)
+    def segment(self, imgs, h, w):
+        input_imgs = [{"image": torch.from_numpy(self.aspect_resize(img, 800, 800).transpose((2,0,1)))} for img in imgs]
+        self.model.eval()
+        with torch.no_grad():
+            outputs = self.model(input_imgs)
+        seg_imgs = []
+        for i in range(len(imgs)):
+            image, label, png = self.apply_mask(imgs[i], outputs[i])
+            if label != lc.NONE:
+                seg_imgs.append((self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)))
+        return seg_imgs
 
 
 
