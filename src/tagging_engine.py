@@ -4,12 +4,13 @@ from google.cloud import vision
 import io, os, random
 from PIL import Image
 import numpy as np
-
+import time
 class TaggingEngine():
 	def __init__(self):
 		self.client = vision.ImageAnnotatorClient()
 
 	def tagImage( self, img_name, shop, gender, label):
+		it = time.time()
 		content = None
 		with io.open(img_name, 'rb') as image_file:
 			content = image_file.read()
@@ -26,6 +27,8 @@ class TaggingEngine():
 		print(searchQuery)
 		
 		links, imageLinks, names, prices, genders, shops = self.scrapeResults( searchQuery, shop, gender)
+		ft = time.time()
+		print("tag TIme: " +  str(ft - it))
 		return links, imageLinks, names, prices, genders, shops, texts, dominant_colors[0]
 	
 	def get_colors(self, image):
@@ -46,7 +49,9 @@ class TaggingEngine():
 		vision_all_colors = np.array(vision_all_colors)
 		vision_scores = np.array(vision_scores)
 		vision_colors = vision_all_colors[np.where(vision_scores >= 25)]
-
+		if len(vision_colors) == 0:
+			max_score_idx = np.argmax(vision_scores)
+			vision_colors = [vision_all_colors[max_score_idx]]
 		color_dict={'white':[255,255,255],'black':[0,0,0],'grey':[128,128,128],'lightblue':[114,188,212],
 					'lightgreen':[44,238,144],'blue':[0,0,255],'green':[0,255,0],'darkblue':[0,0,128],
 					'darkgreen':[0,100,0],'red':[255,0,0],'yellow':[255,255,0],'purple':[186,85,211],
@@ -76,10 +81,15 @@ class TaggingEngine():
 	def detect_text(self, image):
 		response = self.client.text_detection(image=image)
 		texts = response.text_annotations
-			
+		
 		vision_texts = set({})
 		for text in texts:
+			if 'F@' in text.description.strip():
+				return ['FOCUS']
+			elif 'FO' in text.description.strip():
+				return ['FOCUS']
 			vision_texts.add(text.description.strip().replace("\n","").replace('@', 'O'))
+			
 
 		if response.error.message:
 			raise Exception(
@@ -87,8 +97,7 @@ class TaggingEngine():
 				'https://cloud.google.com/apis/design/errors'.format(
 					response.error.message))
 					
-		vision_texts = [] if len(list(vision_texts)) > 2 else list(vision_texts)
-		return vision_texts
+		return list(vision_texts)
 
 	def getPrice(self, link, website=""):
 		A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
@@ -153,7 +162,7 @@ class TaggingEngine():
 		r = requests.get(url, headers=headers)
 		soup = BeautifulSoup(r.text, 'html.parser')
 
-		MAX_RESULTS = 15
+		MAX_RESULTS = 10
 		count = 0
 		links = []
 		images = []
@@ -176,17 +185,19 @@ class TaggingEngine():
 				image = image[0]['src']
 				links.append(link)
 				images.append(image)
-				try:
-					price, name = self.getPrice(link, website)
-					if (price != "" and name != ""):
-						names.append(name)
-						prices.append(float(price))
-					else:
-						names.append('Clothes from' + website)
-						prices.append(20.99)
-				except:
-					names.append('Clothes from' + website)
-					prices.append(20.99)
+				names.append('Clothes from' + website)
+				prices.append(20.99)
+				# try:
+				# 	price, name = self.getPrice(link, website)
+				# 	if (price != "" and name != ""):
+				# 		names.append(name)
+				# 		prices.append(float(price))
+				# 	else:
+				# 		names.append('Clothes from' + website)
+				# 		prices.append(20.99)
+				# except:
+				# 	names.append('Clothes from' + website)
+				# 	prices.append(20.99)
 				genders.append(gender)
 				shops.append(website)
 			if count >= MAX_RESULTS:

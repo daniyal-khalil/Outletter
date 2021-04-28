@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-
+import torch
+import time
 from src.choices import LabelChoicesQueried as lc
 
 class SegmentationEngine(object):
@@ -36,34 +37,80 @@ class SegmentationEngine(object):
         return dest
     
     def cut_sides(self, img, img_mask):
-        img_mask = img_mask.numpy()
-        mask_sum_0 = np.sum(img_mask, axis=0)
-        mask_sum_1 = np.sum(img_mask, axis=1)
+        #img_mask = img_mask.numpy()
+        mask_sum_0 = np.sum(img_mask, axis=1)
+        mask_sum_1 = np.sum(img_mask, axis=0)
         sum_0_l = np.where(mask_sum_0 != 0)[0][0]
         sum_0_r = np.where(mask_sum_0 != 0)[0][-1] + 1
         sum_1_t = np.where(mask_sum_1 != 0)[0][0]
         sum_1_b = np.where(mask_sum_1 != 0)[0][-1] + 1
-        return img[sum_0_l:sum_0_r, sum_1_t:sum_1_b], img_mask[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
+        my_img = img[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
+        my_mask = img_mask[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
+        return my_img, my_mask
 
-    def apply_mask(self, img, output):
+    def apply_mask(self, img, output, prev_label=lc.NONE):
             instances = output["instances"].get_fields()
             image_instances = len(instances['pred_classes'])
             if image_instances == 0:
                 return img, self.labels[13], img
             else:
-                img_scores = instances['scores']
-                loc = np.argmax(img_scores)
-                img_mask = instances['pred_masks'][loc]
-                img, img_mask = self.cut_sides(img, img_mask)
+                img_scores = instances['scores'].cpu()
+                img_labels = [self.labels[label] for label in instances['pred_classes'].cpu()]
+                try:
+                    loc = img_labels.index(prev_label)
+                except:
+                    loc = np.argmax(img_scores)
+                img_mask = instances['pred_masks'][loc].cpu()
+                img, img_mask = self.cut_sides(img, img_mask.numpy())
                 alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
                 alpha_img[:, :, 3] = img_mask  * 255
                 img = np.where(np.stack((img_mask,)*3, axis=-1) , img, 255)
                 return img, self.labels[instances['pred_classes'][loc]], alpha_img
     
-    def segment(self, img, h, w):
-        img = self.aspect_resize(img, 800, 800)
-        image, label, png = self.apply_mask(img, self.model(img))
-        return self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)
+    def segment(self, imgs, h, w, query=False, prev_label=lc.NONE):
+        it = time.time()
+        if query:
+            imgs = self.aspect_resize(imgs, 800, 800)
+            input_img = [{"image": torch.from_numpy(imgs.transpose((2,0,1)))}]
+            self.model.eval()
+            with torch.no_grad():
+                output = self.model(input_img)[0]
+            instances = output["instances"].get_fields()
+            image_instances = len(instances['pred_classes'])
+            if image_instances == 0:
+                ft = time.time()
+                print("No instance - seg TIme: ", ft - it)
+                raise('No instance found!')
+            else:
+                seg_items = []
+                for i in range(image_instances):
+                    pred_mask = instances['pred_masks'][i].cpu()
+                    pred_label = self.labels[instances['pred_classes'][i]]
+                    img = np.copy(imgs)
+                    alpha_img_trans = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+                    alpha_img_trans[:, :, 3] = (pred_mask  * 210) + 45
+                    img, pred_mask = self.cut_sides(img, pred_mask.numpy())
+                    alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+                    alpha_img[:, :, 3] = pred_mask  * 255
+                    img = np.where(np.stack((pred_mask,)*3, axis=-1) , img, 255)
+                    seg_items.append((self.aspect_resize(img,h,w), pred_label, alpha_img, alpha_img_trans))
+                ft = time.time()
+                print("seg TIme: ", ft - it)
+                return seg_items
+        else:
+            imgs = [self.aspect_resize(img, 800, 800) for img in imgs]
+            input_imgs = [{"image": torch.from_numpy(img.transpose((2,0,1)))} for img in imgs]
+            self.model.eval()
+            with torch.no_grad():
+                outputs = self.model(input_imgs)
+            seg_imgs = []
+            for i in range(len(imgs)):
+                image, label, png = self.apply_mask(imgs[i], outputs[i], prev_label=prev_label)
+                if label != lc.NONE:
+                    seg_imgs.append((self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)))
+            ft = time.time()
+            print("seg TIme: ", ft - it)
+            return seg_imgs
 
 
 
