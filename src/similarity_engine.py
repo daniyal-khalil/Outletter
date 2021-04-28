@@ -7,15 +7,14 @@ from sklearn import preprocessing
 from sklearn.neighbors import NearestNeighbors
 from tensorflow.keras.models import load_model
 import time
-from src.choices import LabelChoicesScraped as lc
+from src.choices import LabelChoicesQueried as lc
 
 class SimilarityEngine():
 	def __init__(self, model):
 		self.model = model
-		self.labels = [lc.BRA, lc.BRIEFS, lc.CAPRIS, lc.CASUALSHOES, lc.DRESSES, lc.FLATS, lc.FLIPFLOPS, lc.FORMALSHOES, lc.HEELS,
-		 lc.INNERVESTS, lc.JACKETS, lc.JEANS, lc.KURTAS, lc.KURTIS, lc.LEGGINGS, lc.NIGHTSUITS, lc.NIGHTDRESS, lc.SANDALS,
-		 lc.SAREES, lc.SHIRTS, lc.SHORTS, lc.SKIRTS, lc.SPORTSSHOES, lc.SWEATERS, lc.SWEATSHIRTS, lc.TOPS, lc.TRACKPANTS,
-		 lc.TROUSERS, lc.TRUNK, lc.TSHIRTS, lc.TUNICS, lc.NONE]
+		self.labels = [lc.SHORT_SLEEVED_SHIRT, lc.LONG_SLEEVED_SHIRT, lc.SHORT_SLEEVED_OUTWEAR, lc.LONG_SLEEVED_OUTWEAR,
+				lc.VEST, lc.SLING, lc.SHORTS, lc.TROUSERS, lc.SKIRT, lc.SHORT_SLEEVED_DRESS, lc.LONG_SLEEVED_DRESS,
+				lc.VEST_DRESS, lc.SLING_DRESS, lc.NONE]
 	
 	def predict_image(self, images):
 		images = np.array(images)
@@ -29,7 +28,7 @@ class SimilarityEngine():
 	def decode_query_label(self, itemLoc):
 		return self.labels[itemLoc]
 
-	def sortSimilarity(self, query_img_type_features, given_img_type_features, given_img_type_labels):
+	def sortSimilarity(self, query_image_type_label, query_img_type_features, given_img_type_features, given_img_type_labels):
 		it = time.time()
 		# Converting the image features and labels to numpy and standardizing them
 		query_img_type_features = query_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(query_img_type_features.numpy())
@@ -37,8 +36,7 @@ class SimilarityEngine():
 		given_img_type_features = given_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(given_img_type_features.numpy())
 		given_img_type_labels = np.argmax(given_img_type_labels.numpy(), axis=1)
 		
-		# itemLoc = np.amax(given_img_type_labels)
-		itemLoc = 45
+		itemLoc = self.labels.index(query_image_type_label)
 
 		given_img_type_locs_top = np.where(given_img_type_labels == itemLoc)[0]
 		given_img_type_features_top = given_img_type_features[given_img_type_labels == itemLoc]

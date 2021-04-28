@@ -6,7 +6,7 @@ from Outletter.wish.models import Wish
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import serializers
 
-from src.choices import GenderChoices, ShopChoices, LabelChoicesQueried, LabelChoicesScraped
+from src.choices import GenderChoices, ShopChoices, LabelChoicesQueried
 
 class QueryItemCreateSerializer(serializers.ModelSerializer):
     gender = serializers.ChoiceField(required=True, source='for_gender', choices=GenderChoices.choices)
@@ -72,7 +72,7 @@ class ScrapedItemCreateSerializer(serializers.ModelSerializer):
         )
     
 class ScrapedItemUpdateSerializer(serializers.ModelSerializer):
-    label = serializers.ChoiceField(required=True, choices=LabelChoicesScraped.choices)
+    label = serializers.ChoiceField(required=True, choices=LabelChoicesQueried.choices)
 
     class Meta:
         model = ScrapedItem
