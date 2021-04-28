@@ -66,6 +66,7 @@ class SegmentationEngine(object):
     def segment(self, imgs, h, w, query=False):
         it = time.time()
         if query:
+            imgs = self.aspect_resize(imgs, 800, 800)
             input_img = [{"image": torch.from_numpy(imgs.transpose((2,0,1)))}]
             self.model.eval()
             with torch.no_grad():
