@@ -174,7 +174,7 @@ class ItemListView(views.APIView):
 
 		# Sort all segmented scraped images by similarity to the query image
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
-		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, given_img_type_features, given_img_type_labels)
+		sortedIndices, resultLabels = similarityEngine.sortSimilarity(label, query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
 
 		# Update the label for the scraped items
@@ -245,7 +245,7 @@ class ItemListView(views.APIView):
 
 		# Sort all segmented scraped images by similarity to the query image
 		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
-		sortedIndices, resultLabels = similarityEngine.sortSimilarity(query_img_type_features, given_img_type_features, given_img_type_labels)
+		sortedIndices, resultLabels = similarityEngine.sortSimilarity(segmented_results[1], query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
 
 		# Update the label for the scraped items
