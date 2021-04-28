@@ -48,14 +48,18 @@ class SegmentationEngine(object):
         my_mask = img_mask[sum_0_l:sum_0_r, sum_1_t:sum_1_b]
         return my_img, my_mask
 
-    def apply_mask(self, img, output):
+    def apply_mask(self, img, output, prev_label=lc.NONE):
             instances = output["instances"].get_fields()
             image_instances = len(instances['pred_classes'])
             if image_instances == 0:
                 return img, self.labels[13], img
             else:
                 img_scores = instances['scores'].cpu()
-                loc = np.argmax(img_scores)
+                img_labels = [self.labels[label] for label in instances['pred_classes'].cpu()]
+                try:
+                    loc = img_labels.index(prev_label)
+                except:
+                    loc = np.argmax(img_scores)
                 img_mask = instances['pred_masks'][loc].cpu()
                 img, img_mask = self.cut_sides(img, img_mask.numpy())
                 alpha_img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
@@ -63,7 +67,7 @@ class SegmentationEngine(object):
                 img = np.where(np.stack((img_mask,)*3, axis=-1) , img, 255)
                 return img, self.labels[instances['pred_classes'][loc]], alpha_img
     
-    def segment(self, imgs, h, w, query=False):
+    def segment(self, imgs, h, w, query=False, prev_label=lc.NONE):
         it = time.time()
         if query:
             imgs = self.aspect_resize(imgs, 800, 800)
@@ -101,7 +105,7 @@ class SegmentationEngine(object):
                 outputs = self.model(input_imgs)
             seg_imgs = []
             for i in range(len(imgs)):
-                image, label, png = self.apply_mask(imgs[i], outputs[i])
+                image, label, png = self.apply_mask(imgs[i], outputs[i], prev_label=prev_label)
                 if label != lc.NONE:
                     seg_imgs.append((self.aspect_resize(image, h, w), label, self.aspect_resize(png, h, w)))
             ft = time.time()

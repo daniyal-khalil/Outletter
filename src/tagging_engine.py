@@ -81,7 +81,7 @@ class TaggingEngine():
 	def detect_text(self, image):
 		response = self.client.text_detection(image=image)
 		texts = response.text_annotations
-		print(texts)
+		
 		vision_texts = set({})
 		for text in texts:
 			if 'F@' in text.description.strip():

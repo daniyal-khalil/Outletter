@@ -160,7 +160,7 @@ class ItemListView(views.APIView):
 		# Segment all the scraped_images
 		segmented_scraped_images = []
 		scraped_image_items = []
-		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1])
+		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1], prev_label=label)
 		for i, img in enumerate(list_segmented_tuples):
 			try:
 				segmented_scraped_images.append(img[0])
@@ -232,7 +232,7 @@ class ItemListView(views.APIView):
 		segmented_scraped_images = []
 		scraped_image_items = []
 		given_img_type_labels = []
-		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1])
+		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1], prev_label=segmented_results[1])
 		for i, img in enumerate(list_segmented_tuples):
 			try:
 				segmented_scraped_images.append(img[0])
