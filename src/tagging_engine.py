@@ -81,10 +81,15 @@ class TaggingEngine():
 	def detect_text(self, image):
 		response = self.client.text_detection(image=image)
 		texts = response.text_annotations
-			
+		print(texts)
 		vision_texts = set({})
 		for text in texts:
+			if 'F@' in text.description.strip():
+				return ['FOCUS']
+			elif 'FO' in text.description.strip():
+				return ['FOCUS']
 			vision_texts.add(text.description.strip().replace("\n","").replace('@', 'O'))
+			
 
 		if response.error.message:
 			raise Exception(
@@ -92,8 +97,7 @@ class TaggingEngine():
 				'https://cloud.google.com/apis/design/errors'.format(
 					response.error.message))
 					
-		vision_texts = [] if len(list(vision_texts)) > 2 else list(vision_texts)
-		return vision_texts
+		return list(vision_texts)
 
 	def getPrice(self, link, website=""):
 		A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",

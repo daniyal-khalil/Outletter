@@ -75,7 +75,7 @@ class SegmentationEngine(object):
             image_instances = len(instances['pred_classes'])
             if image_instances == 0:
                 ft = time.time()
-                print("seg TIme: ", ft - it)
+                print("No instance - seg TIme: ", ft - it)
                 raise('No instance found!')
             else:
                 seg_items = []
