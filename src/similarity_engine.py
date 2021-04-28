@@ -34,7 +34,7 @@ class SimilarityEngine():
 		query_img_type_features = query_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(query_img_type_features.numpy())
 
 		given_img_type_features = given_img_type_features.numpy() #preprocessing.StandardScaler().fit_transform(given_img_type_features.numpy())
-		given_img_type_labels = np.argmax(given_img_type_labels.numpy(), axis=1)
+		given_img_type_labels = np.array([self.labels.index(label) for label in given_img_type_labels])
 		
 		itemLoc = self.labels.index(query_image_type_label)
 
