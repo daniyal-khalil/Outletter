@@ -231,10 +231,12 @@ class ItemListView(views.APIView):
 		# Segment all the scraped_images
 		segmented_scraped_images = []
 		scraped_image_items = []
+		given_img_type_labels = []
 		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1])
 		for i, img in enumerate(list_segmented_tuples):
 			try:
 				segmented_scraped_images.append(img[0])
+				given_img_type_labels.append(img[1])
 				scraped_image_items.append(scraped_items[i])
 			except:
 				print('Empty Image Encountered')
@@ -244,7 +246,7 @@ class ItemListView(views.APIView):
 			cv2.imwrite(scraped_image_items[i].picture.url[1:], segmented_scraped_images[i])
 
 		# Sort all segmented scraped images by similarity to the query image
-		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
+		given_img_type_features, waste = similarityEngine.predict_image(segmented_scraped_images)
 		sortedIndices, resultLabels = similarityEngine.sortSimilarity(segmented_results[1], query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
 
