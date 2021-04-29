@@ -55,7 +55,7 @@ class ItemListView(views.APIView):
 						'picture': image_file,
 						'gender': scraped_gender[i],
 						'shop': scraped_shop[i],
-						'name': scraped_names[i],
+						'name': '_' if scraped_names[i] == '' else scraped_names[i],
 						'price': scraped_prices[i],
 						'url': scraped_urls[i],
 						'image_url': scraped_image_links[i]
@@ -64,6 +64,8 @@ class ItemListView(views.APIView):
 				if scraped_item_serializer.is_valid():
 					scraped_item_serializer = scraped_item_serializer.save()
 					scraped_items.append(scraped_item_serializer)
+				else:
+					print(scraped_item_serializer.errors)
 
 		return scraped_items
 
@@ -85,6 +87,7 @@ class ItemListView(views.APIView):
 		item_serializer = self.serializer_class(data=request.data)
 		if item_serializer.is_valid():
 			query_item = item_serializer.save()
+			print("before seg: ", time.time() - start)
 			res = self.segment_query(query_item)
 			print("TIME: ", time.time() - start)
 			return response.Response(res, status=status.HTTP_200_OK)
@@ -104,12 +107,15 @@ class ItemListView(views.APIView):
 		# Segment the query Image
 		try:
 			segmented_images = segmenter.segment(queryImage, IMG_SIZE[0], IMG_SIZE[1], query=True)
+			st_1 = time.time()
 		except:
+			print("No cloth instance found")
 			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
 		
 		if len(segmented_images) == 1:
 			return self.run_engines_single(query_item, segmented_images[0], segmenter)
 		elif len(segmented_images) > 1:
+			st_2 = time.time()
 			for segmented_queryImage, segmented_queryImage_label, segmented_queryImage_png, segmented_queryImage_trans_png in segmented_images:
 				# Save the segmented query image
 				random_name = self.generate_random_string()
@@ -117,9 +123,11 @@ class ItemListView(views.APIView):
 				cv2.imwrite("./media/item_pictures/" + random_name + ".png", segmented_queryImage_png)
 				cv2.imwrite("./media/item_pictures/" + random_name + "_trans.png", segmented_queryImage_trans_png)
 				segmented_items_names_labels.append(("/media/item_pictures/" + random_name + "_trans.png", segmented_queryImage_label))
+				st_3 = time.time()
+				st_2 = st_3
 
-			return QuerySegmentInitialSerializer(query_item, context={"seg_labels_imgs": segmented_items_names_labels}).data
-			
+			return_result = QuerySegmentInitialSerializer(query_item, context={"seg_labels_imgs": segmented_items_names_labels}).data
+			return return_result
 
 	def process_segmented(self, query_item, image_name, label):
 		segmenter  = SegmentationEngine(settings.SEGMENTATION_MODEL)
@@ -141,6 +149,7 @@ class ItemListView(views.APIView):
 		png_for_cloud_name, query_item.shop, query_item.for_gender, label)
 
 		if len(scraped_urls) == 0:
+			print("Could not perform scraping")
 			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
 
 		# Update the label, text and color for the query items
@@ -157,14 +166,20 @@ class ItemListView(views.APIView):
 		# scraped_images = [segmenter.aspect_resize(cv2.imread(item.picture.url[1:]), IMG_SIZE[0], IMG_SIZE[1]) for item in scraped_items]
 		scraped_images = [cv2.imread(item.picture.url[1:]) for item in scraped_items]
 
+		if len(scraped_images) == 0:
+			print("could not create scraped items")
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
+
 		# Segment all the scraped_images
 		segmented_scraped_images = []
 		scraped_image_items = []
+		given_img_type_labels = []
 		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1], prev_label=label)
 		for i, img in enumerate(list_segmented_tuples):
 			try:
 				segmented_scraped_images.append(img[0])
 				scraped_image_items.append(scraped_items[i])
+				given_img_type_labels.append(img[1])
 			except:
 				print('Empty Image Encountered')
 
@@ -173,7 +188,7 @@ class ItemListView(views.APIView):
 			cv2.imwrite(scraped_image_items[i].picture.url[1:], segmented_scraped_images[i])
 
 		# Sort all segmented scraped images by similarity to the query image
-		given_img_type_features, given_img_type_labels = similarityEngine.predict_image(segmented_scraped_images)
+		given_img_type_features, given_img_type_labels_waste = similarityEngine.predict_image(segmented_scraped_images)
 		sortedIndices, resultLabels = similarityEngine.sortSimilarity(label, query_img_type_features, given_img_type_features, given_img_type_labels)
 		sorted_scraped_items = [scraped_image_items[ind] for ind in sortedIndices]
 
@@ -208,8 +223,9 @@ class ItemListView(views.APIView):
 		# Do tagging on the segmented query image
 		scraped_urls, scraped_image_links, scraped_names, scraped_prices, scraped_genders, scraped_shops, tagged_texts, tagged_color = tagger.tagImage(
 			png_for_cloud_name, query_item.shop, query_item.for_gender, segmented_results[1])
-		
+
 		if len(scraped_urls) == 0:
+			print("could not perform scraping")
 			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
 
 		# Update the label, text and color for the query items
@@ -226,6 +242,9 @@ class ItemListView(views.APIView):
 		# scraped_images = [segmenter.aspect_resize(cv2.imread(item.picture.url[1:]), IMG_SIZE[0], IMG_SIZE[1]) for item in scraped_items]
 		scraped_images = [cv2.imread(item.picture.url[1:]) for item in scraped_items]
 		
+		if len(scraped_images) == 0:
+			print("could not create scraped items")
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
 		# # Temporarily until segmenter is fast
 		# segmented_scraped_images = scraped_images
 		# Segment all the scraped_images
@@ -274,7 +293,6 @@ class ItemListTestView(views.APIView):
 		if item_serializer.is_valid():
 			query_item = item_serializer.save()
 			sorted_scraped_items = ScrapedItem.objects.all()[:15]
-			print(sorted_scraped_items[0].pk)
 			res = ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
 			return response.Response(res, status=status.HTTP_200_OK)
 		else:

@@ -5,6 +5,7 @@ import io, os, random
 from PIL import Image
 import numpy as np
 import time
+from random import randint
 class TaggingEngine():
 	def __init__(self):
 		self.client = vision.ImageAnnotatorClient()
@@ -26,7 +27,7 @@ class TaggingEngine():
 			searchQuery = "site:" + shop + " (" + label + ") and (" + gender + ") and (" + ' and '.join(dominant_colors) + ")"
 		print(searchQuery)
 		
-		links, imageLinks, names, prices, genders, shops = self.scrapeResults( searchQuery, shop, gender)
+		links, imageLinks, names, prices, genders, shops = self.scrapeResults( searchQuery, shop, gender, label)
 		ft = time.time()
 		print("tag TIme: " +  str(ft - it))
 		return links, imageLinks, names, prices, genders, shops, texts, dominant_colors[0]
@@ -148,11 +149,11 @@ class TaggingEngine():
 
 
 
-	def scrapeResults(self, query, website, gender):
+	def scrapeResults(self, query, website, gender, label):
 		query = query.replace(":", "%3A").replace(
 		" ", "+").replace("/", "%2F").replace("@", "%40")
 		text = '' + query
-		url = 'https://www.google.com/search?q=' + text + '&source=lnms&tbm=isch'
+		url = 'https://www.google.com/search?q=' + text + '&hl=tr&source=lnms&tbm=isch'
 		A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
 			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
 			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
@@ -185,8 +186,9 @@ class TaggingEngine():
 				image = image[0]['src']
 				links.append(link)
 				images.append(image)
-				names.append('Clothes from' + website)
-				prices.append(20.99)
+				names.append('')
+				price = randint(2000,6000)/100
+				prices.append(price)
 				# try:
 				# 	price, name = self.getPrice(link, website)
 				# 	if (price != "" and name != ""):
