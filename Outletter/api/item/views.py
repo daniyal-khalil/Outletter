@@ -287,6 +287,38 @@ class ItemListView(views.APIView):
 		# Serialize the response and return
 		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': sorted_scraped_items}).data
 
+class ItemInfoView(views.APIView):
+	serializer_class = QueryItemCreateSerializer
+	query_set = QueryItem.objects.all()
+	permission_classes = (permissions.AllowAny,)
+
+	def get(self, request, *args, **kwargs):
+		st = time.time()
+		if 'query_id' not in request.GET or 'similar_id' not in request.GET:
+			return response.Response('GET not allowed in the following format', status=status.HTTP_400_BAD_REQUEST)
+		
+		query_id = request.GET.get('query_id')
+		similar_items_id = request.GET.get('similar_id')
+		
+		scraped_items = ScrapedItem.objects.filter(pk__in=similar_items_id)
+		links = [item.url for item in scraped_items]
+		query_item = ScrapedItem.objects.filter(pk=query_id).first()
+		website = query_item.shop
+		tagger = TaggingEngine()
+
+		prices, names = tagger.scrape_names_threaded(links, website)
+
+		for i in range(len(scraped_items)):
+			item = scraped_items[i]
+			data = {"name": names[i], "price": prices[i]}
+			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
+			if scraped_item_update_serializer.is_valid():
+				scraped_items[i] = scraped_item_update_serializer.save()
+
+		ft = time.time()
+		print("MultithreadedScraping Time: ", ft - st)
+		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': scraped_items}).data
+
 class ItemListTestView(views.APIView):
 	serializer_class = QueryItemCreateSerializer
 	query_set = QueryItem.objects.all()

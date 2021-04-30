@@ -6,6 +6,8 @@ from PIL import Image
 import numpy as np
 import time
 from random import randint
+import threading
+
 class TaggingEngine():
 	def __init__(self):
 		self.client = vision.ImageAnnotatorClient()
@@ -100,55 +102,6 @@ class TaggingEngine():
 					
 		return list(vision_texts)
 
-	def getPrice(self, link, website=""):
-		A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
-			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
-			"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
-			)
-
-		Agent = A[random.randrange(len(A))]
-		headers = {'user-agent': Agent}
-		r = requests.get(link, headers=headers)
-		soup = BeautifulSoup(r.text, 'html.parser')
-		price = ""
-		name = ""
-
-		if website == "www.koton.com":
-			tag = soup.find('meta', {"name": "product:price:amount"})
-			price = tag['content']
-			tag = soup.find('meta', {"name": "og:title"})
-			name = tag['content']
-			return price, name
-
-		if website == "www.trendyol.com":
-			tag = soup.find('meta', {"name": "twitter:data1"})
-			price = tag['content']
-			tag = soup.find('meta', {"name": "description"})
-			split = tag['content']
-			split = split.split(' ')
-			name = split[0] + " " + split[1] + " "  + split[2] + " " + split[3] + " " + split[4]
-			return price, name
-
-		if website == "www.lcwaikiki.com":
-			tag = soup.find('span', {"class": "price"})
-			price = tag.get_text()
-			return price, name
-
-		if website == "www.boyner.com.tr":
-			tag = soup.find('p', {"class": "m-campaignPrice"})
-			if (tag != None):
-				price = tag.get_text()[:-3]
-			else:
-				tag = soup.find('ins', {"class": "price-payable"})
-				price = tag.get_text()[:-3]
-			tag = soup.find('meta', {"property": "og:title"})
-			if (tag != None):
-				name = tag['content']
-
-		return price, name
-
-
-
 	def scrapeResults(self, query, website, gender, label):
 		query = query.replace(":", "%3A").replace(
 		" ", "+").replace("/", "%2F").replace("@", "%40")
@@ -187,21 +140,70 @@ class TaggingEngine():
 				links.append(link)
 				images.append(image)
 				names.append('')
-				price = randint(2000,6000)/100
+				price = -1
 				prices.append(price)
-				# try:
-				# 	price, name = self.getPrice(link, website)
-				# 	if (price != "" and name != ""):
-				# 		names.append(name)
-				# 		prices.append(float(price))
-				# 	else:
-				# 		names.append('Clothes from' + website)
-				# 		prices.append(20.99)
-				# except:
-				# 	names.append('Clothes from' + website)
-				# 	prices.append(20.99)
 				genders.append(gender)
 				shops.append(website)
 			if count >= MAX_RESULTS:
 				break
 		return links, images, names, prices, genders, shops
+
+	def scrape_names_threaded(self, links, website):
+		prices = [None] * len(links)
+		names = [None] * len(links)
+		def getPrice(link, website="", index=0):
+			try:
+				A = ("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
+				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
+				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
+				)
+
+				Agent = A[random.randrange(len(A))]
+				headers = {'user-agent': Agent}
+				r = requests.get(link, headers=headers)
+				soup = BeautifulSoup(r.text, 'html.parser')
+				if website == "www.koton.com":
+					tag = soup.find('meta', {"name": "product:price:amount"})
+					price = tag['content']
+					tag = soup.find('meta', {"name": "og:title"})
+					name = tag['content']
+
+				if website == "www.trendyol.com":
+					tag = soup.find('meta', {"name": "twitter:data1"})
+					price = tag['content']
+					tag = soup.find('meta', {"name": "description"})
+					split = tag['content']
+					split = split.split(' ')
+					name = split[0] + " " + split[1] + " "  + split[2] + " " + split[3] + " " + split[4]
+
+				if website == "www.lcwaikiki.com":
+					tag = soup.find('span', {"class": "price"})
+					price = tag.get_text()
+
+				if website == "www.boyner.com.tr":
+					tag = soup.find('p', {"class": "m-campaignPrice"})
+					if (tag != None):
+						price = tag.get_text()[:-3]
+					else:
+						tag = soup.find('ins', {"class": "price-payable"})
+						price = tag.get_text()[:-3]
+					tag = soup.find('meta', {"property": "og:title"})
+				if (tag != None):
+					name = tag['content']
+					prices[index] = price
+					names[index] = name
+			except:
+				prices[index] = -1
+				names[index] = "_"
+		
+		def threads_price():
+			for i in range(0,len(links)):
+				first = threading.Thread(target=getPrice, args=(links[i], website, i))
+				first.start()
+
+			for i in range(0,len(links)):
+				first.join()
+		
+		threads_price()
+
+		return prices, names
