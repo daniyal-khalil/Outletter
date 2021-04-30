@@ -298,26 +298,32 @@ class ItemInfoView(views.APIView):
 			return response.Response('GET not allowed in the following format', status=status.HTTP_400_BAD_REQUEST)
 		
 		query_id = request.GET.get('query_id')
-		similar_items_id = request.GET.get('similar_id')
+		similar_id = request.GET.get('similar_id')
 		
+
+		similar_items_ids = similar_id.split(",")
+		similar_items_id = [int(x.strip()) for x in similar_items_ids]
+
 		scraped_items = ScrapedItem.objects.filter(pk__in=similar_items_id)
 		links = [item.url for item in scraped_items]
-		query_item = ScrapedItem.objects.filter(pk=query_id).first()
+		query_item = QueryItem.objects.filter(pk=query_id).first()
 		website = query_item.shop
 		tagger = TaggingEngine()
 
+		final_scraped_items = []
 		prices, names = tagger.scrape_names_threaded(links, website)
-
 		for i in range(len(scraped_items)):
 			item = scraped_items[i]
-			data = {"name": names[i], "price": prices[i]}
+			data = {"name": str(names[i]), "price": float(prices[i]), "label": scraped_items[i].label}
 			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
 			if scraped_item_update_serializer.is_valid():
-				scraped_items[i] = scraped_item_update_serializer.save()
-
+				final_scraped_items.append(scraped_item_update_serializer.save())
+			else:
+				print(scraped_item_update_serializer.errors)
 		ft = time.time()
+		return_result = ScrapingResponseSerializer({'query_item': query_item, 'similar_items': final_scraped_items}).data
 		print("MultithreadedScraping Time: ", ft - st)
-		return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': scraped_items}).data
+		return response.Response(return_result, status=status.HTTP_200_OK)
 
 class ItemListTestView(views.APIView):
 	serializer_class = QueryItemCreateSerializer

@@ -73,13 +73,17 @@ class ScrapedItemCreateSerializer(serializers.ModelSerializer):
     
 class ScrapedItemUpdateSerializer(serializers.ModelSerializer):
     label = serializers.ChoiceField(required=True, choices=LabelChoicesQueried.choices)
+    name = serializers.CharField(required=True)
+    price = serializers.DecimalField(required=True, max_digits=6, decimal_places=2)
 
     class Meta:
         model = ScrapedItem
-        fields = ("label", )
+        fields = ("label", 'name','price')
     
     def update(self, instance, validated_data):
         instance.label = validated_data.get('label', instance.label)
+        instance.name = validated_data.get('name', instance.name)
+        instance.price = validated_data.get('price', instance.price)
         instance.save()
         return instance
 
