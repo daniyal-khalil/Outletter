@@ -186,6 +186,10 @@ class ItemListView(views.APIView):
 			except:
 				print('Empty Image Encountered')
 
+		if len(segmented_scraped_images) == 0:
+			print("could not segment any scraped  items")
+			return ScrapingResponseSerializer({'query_item': query_item, 'similar_items': []}).data
+
 		# Save all scraped segmented images
 		for i in range(len(segmented_scraped_images)):
 			cv2.imwrite(scraped_image_items[i].picture.url[1:], segmented_scraped_images[i])
@@ -257,10 +261,9 @@ class ItemListView(views.APIView):
 		list_segmented_tuples = segmenter.segment(scraped_images, IMG_SIZE[0], IMG_SIZE[1], prev_label=segmented_results[1])
 		for i, img in enumerate(list_segmented_tuples):
 			try:
-				if img[0] != None and img[1] != None:
-					segmented_scraped_images.append(img[0])
-					given_img_type_labels.append(img[1])
-					scraped_image_items.append(scraped_items[i])
+				segmented_scraped_images.append(img[0])
+				given_img_type_labels.append(img[1])
+				scraped_image_items.append(scraped_items[i])
 			except:
 				print('Empty Image Encountered')
 
