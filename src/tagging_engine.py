@@ -86,21 +86,29 @@ class TaggingEngine():
 		texts = response.text_annotations
 		
 		vision_texts = set({})
+		biggest = ''
+		len_biggest = 0
 		for text in texts:
 			if 'F@' in text.description.strip():
 				return ['FOCUS']
 			elif 'FO' in text.description.strip():
 				return ['FOCUS']
-			vision_texts.add(text.description.strip().replace("\n","").replace('@', 'O'))
-			
+			if len(text.description.strip()) > len_biggest:
+				biggest = text.description.strip()
+				len_biggest = len(biggest)
+		temp_texts = biggest.split('\n')
+		vision_texts = []
+		for x in temp_texts:
+			vision_texts.extend(x.split(' '))
 
 		if response.error.message:
 			raise Exception(
 				'{}\nFor more info on error messages, check: '
 				'https://cloud.google.com/apis/design/errors'.format(
 					response.error.message))
-					
-		return list(vision_texts)
+
+		print(vision_texts)
+		return vision_texts
 
 	def scrapeResults(self, query, website, gender, label):
 		query = query.replace(":", "%3A").replace(
@@ -203,7 +211,13 @@ class TaggingEngine():
 
 			for i in range(0,len(links)):
 				first.join()
-		
+
 		threads_price()
+
+		for i in range(len(prices)):
+			if prices[i] is None:
+				prices[i] = -1
+			if names[i] is None:
+				names[i] = '_'
 
 		return prices, names

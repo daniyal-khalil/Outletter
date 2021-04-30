@@ -312,6 +312,7 @@ class ItemInfoView(views.APIView):
 
 		final_scraped_items = []
 		prices, names = tagger.scrape_names_threaded(links, website)
+		print(prices,names)
 		for i in range(len(scraped_items)):
 			item = scraped_items[i]
 			data = {"name": str(names[i]), "price": float(prices[i]), "label": scraped_items[i].label}
