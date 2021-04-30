@@ -73,6 +73,7 @@ class ItemListView(views.APIView):
 		return ''.join(random.choices(string.ascii_uppercase + string.digits, k=N)) 
 
 	def get(self, request, *args, **kwargs):
+		st = time.time()
 		if 'id' not in request.GET or 'image_name' not in request.GET or 'label' not in request.GET:
 			return response.Response('GET not allowed in the following format', status=status.HTTP_400_BAD_REQUEST)
 		id = request.GET.get('id')
@@ -80,6 +81,8 @@ class ItemListView(views.APIView):
 		label = request.GET.get('label')
 		query_item = QueryItem.objects.filter(pk=id).first()
 		res = self.process_segmented(query_item, image_name, label)
+		ft = time.time()
+		print("TIME: ", ft - st)
 		return response.Response(res, status=status.HTTP_200_OK)
 
 	def post(self, request, *args, **kwargs):
