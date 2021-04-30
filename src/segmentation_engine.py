@@ -101,7 +101,7 @@ class SegmentationEngine(object):
                 print("seg TIme: ", ft - it)
                 return seg_items
         else:
-            imgs = [self.aspect_resize(img, 800, 800) for img in imgs]
+            imgs = [self.aspect_resize(img, 800, 800,pad=False) for img in imgs]
             input_imgs = [{"image": torch.from_numpy(img.transpose((2,0,1)))} for img in imgs]
             self.model.eval()
             with torch.no_grad():
