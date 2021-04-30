@@ -11,7 +11,7 @@ class SegmentationEngine(object):
                         lc.VEST, lc.SLING, lc.SHORTS, lc.TROUSERS, lc.SKIRT, lc.SHORT_SLEEVED_DRESS, lc.LONG_SLEEVED_DRESS,
                         lc.VEST_DRESS, lc.SLING_DRESS, lc.NONE]
     
-    def aspect_resize(self, src, tar_h, tar_w):
+    def aspect_resize(self, src, tar_h, tar_w, pad=True):
         h,w,c = src.shape
         max_dim = max(h,w)
         if max_dim == h:
@@ -27,14 +27,17 @@ class SegmentationEngine(object):
         new_w = (int)(round(ratio * w))
         src = cv2.resize(src, (new_w, new_h))
 
-        if max_dim_name == 'h':
-            diff = (int)((tar_w - new_w) / 2)
-            dest = cv2.copyMakeBorder(src, 0, 0, diff, tar_w - new_w - diff, cv2.BORDER_CONSTANT, 255)
-        else:
-            diff = (int)((tar_h - new_h) / 2)
-            dest = cv2.copyMakeBorder(src, diff, tar_h - new_h - diff, 0, 0, cv2.BORDER_CONSTANT, 255)
+        if pad:
+            if max_dim_name == 'h':
+                diff = (int)((tar_w - new_w) / 2)
+                dest = cv2.copyMakeBorder(src, 0, 0, diff, tar_w - new_w - diff, cv2.BORDER_CONSTANT, 255)
+            else:
+                diff = (int)((tar_h - new_h) / 2)
+                dest = cv2.copyMakeBorder(src, diff, tar_h - new_h - diff, 0, 0, cv2.BORDER_CONSTANT, 255)
 
-        return dest
+            return dest
+        else:
+            return src
     
     def cut_sides(self, img, img_mask):
         #img_mask = img_mask.numpy()
@@ -70,7 +73,7 @@ class SegmentationEngine(object):
     def segment(self, imgs, h, w, query=False, prev_label=lc.NONE):
         it = time.time()
         if query:
-            imgs = self.aspect_resize(imgs, 800, 800)
+            imgs = self.aspect_resize(imgs, 800, 800, pad=False)
             input_img = [{"image": torch.from_numpy(imgs.transpose((2,0,1)))}]
             self.model.eval()
             with torch.no_grad():
