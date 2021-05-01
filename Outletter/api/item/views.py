@@ -202,7 +202,7 @@ class ItemListView(views.APIView):
 		# Update the label for the scraped items
 		for i in range(len(scraped_image_items)):
 			item = sorted_scraped_items[i]
-			data = {"label": resultLabels[i]}
+			data = {"name": str("_"), "price": float(-1), "label": resultLabels[i]}
 			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
 			if scraped_item_update_serializer.is_valid():
 				sorted_scraped_items[i] = scraped_item_update_serializer.save()
@@ -283,7 +283,7 @@ class ItemListView(views.APIView):
 		# Update the label for the scraped items
 		for i in range(len(scraped_image_items)):
 			item = sorted_scraped_items[i]
-			data = {"label": resultLabels[i]}
+			data = {"name": str("_"), "price": float(-1), "label": resultLabels[i]}
 			scraped_item_update_serializer = ScrapedItemUpdateSerializer(item, data=data)
 			if scraped_item_update_serializer.is_valid():
 				sorted_scraped_items[i] = scraped_item_update_serializer.save()
