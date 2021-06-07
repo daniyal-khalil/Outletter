@@ -6,7 +6,7 @@ from Outletter.wish.models import Wish
 from django.contrib.postgres.fields import ArrayField
 from rest_framework import serializers
 
-from src.choices import GenderChoices, ShopChoices, LabelChoicesQueried, LabelChoicesScraped
+from src.choices import GenderChoices, ShopChoices, LabelChoicesQueried
 
 class QueryItemCreateSerializer(serializers.ModelSerializer):
     gender = serializers.ChoiceField(required=True, source='for_gender', choices=GenderChoices.choices)
@@ -72,14 +72,18 @@ class ScrapedItemCreateSerializer(serializers.ModelSerializer):
         )
     
 class ScrapedItemUpdateSerializer(serializers.ModelSerializer):
-    label = serializers.ChoiceField(required=True, choices=LabelChoicesScraped.choices)
+    label = serializers.ChoiceField(required=True, choices=LabelChoicesQueried.choices)
+    name = serializers.CharField(required=True)
+    price = serializers.DecimalField(required=True, max_digits=6, decimal_places=2)
 
     class Meta:
         model = ScrapedItem
-        fields = ("label", )
+        fields = ("label", 'name','price')
     
     def update(self, instance, validated_data):
         instance.label = validated_data.get('label', instance.label)
+        instance.name = validated_data.get('name', instance.name)
+        instance.price = validated_data.get('price', instance.price)
         instance.save()
         return instance
 
@@ -131,3 +135,33 @@ class ScrapingResponseSerializer(serializers.Serializer):
         if not result["query_item"]["debug"]:
             result.pop("query_item")
         return result
+
+class QueryOptionSerializer(serializers.Serializer):
+    image_name = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ("image_name", "label")
+    
+    def get_image_name(self, obj):
+        return obj[0]
+    
+    def get_label(self, obj):
+        return obj[1]
+
+class QuerySegmentInitialSerializer(serializers.Serializer):
+    n = serializers.SerializerMethodField()
+    query_item = serializers.SerializerMethodField()
+    options = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ("n", "query_item", "options")
+    
+    def get_n(self, obj):
+        return len(self.context.get("seg_labels_imgs"))
+    
+    def get_query_item(self, obj):
+        return QueryItemSerializer(obj).data
+    
+    def get_options(self, obj):
+        return [QueryOptionSerializer(t).data for t in self.context.get("seg_labels_imgs")]

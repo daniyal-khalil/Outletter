@@ -129,25 +129,32 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 import tensorflow as tf
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+  try:
+    for gpu in gpus:
+      tf.config.experimental.set_memory_growth(gpu, True)
+  except RuntimeError as e:
+    print(e)
 model = tf.keras.models.load_model(os.path.join(MODEL_DIR, 'similarity_model_demo1.h5'))
 SIMILARITY_MODEL = tf.keras.Model(inputs=model.layers[0].input, outputs=[model.layers[-2].output, model.layers[-1].output])
 
 import detectron2
 from detectron2 import model_zoo
-from detectron2.engine import DefaultPredictor
-from detectron2.engine import DefaultTrainer
 from detectron2.config import get_cfg
-from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
+from detectron2.modeling import build_model
+from detectron2.checkpoint import DetectionCheckpointer
 
 cfg = get_cfg()
 
 cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
 cfg.OUTPUT_DIR = MODEL_DIR
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_0002999.pth") 
-cfg.MODEL.DEVICE = "cpu"
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5   # set the testing threshold for this model
 cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 64
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 13 
+cfg.SOLVER.IMS_PER_BATCH_TESTING = 10
 
-SEGMENTATION_MODEL = DefaultPredictor(cfg)
+SEGMENTATION_MODEL = build_model(cfg)
+DetectionCheckpointer(SEGMENTATION_MODEL).load(os.path.join(cfg.OUTPUT_DIR, "model_0002999.pth"))
